@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FedEx Tracking Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/static/pycube-logo.png" alt="Pycube">
+        </div>
+        <nav class="main-nav">
+            <a href="/" class="nav-link">Dashboard</a>
+            <a href="/analytics" class="nav-link active">Analytics</a>
+        </nav>
+        <div class="user-info">
+            {% if 'username' in session %}
+            <div class="user-profile-dropdown">
+                <div class="user-profile-trigger">
+                    <img src="/static/profile.jpg" alt="Profile" class="profile-image">
+                    <div class="user-details">
+                        <div class="user-name">{{ session['username'] }}</div>
+                        <div class="user-role">Clinic Manager</div>
+                    </div>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        User Profile
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Log Out
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+            {% endif %}
+        </div>
+    </header>
+    <main>
+        <div class="container-wrapper">
+            <div class="analytics-container">
+                <div class="analytics-header">
+                    <h2>Shipment Analytics</h2>
+                    <div class="date-filters">
+                        <input type="date" id="startDate" class="date-input">
+                        <span>to</span>
+                        <input type="date" id="endDate" class="date-input">
+                        <button id="applyFilter" class="filter-btn">Apply Filter</button>
+                        <button id="resetFilter" class="filter-btn">Reset</button>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-box">
+                        <h3>Daily Shipment Volume</h3>
+                        <div class="chart-container">
+                            <canvas id="shipmentsChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Shipment Status Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Receiving Lab Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="labChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Courier Type Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="courierChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // User profile dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileTrigger = document.querySelector('.user-profile-trigger');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+            
+            profileTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                dropdownMenu.classList.remove('show');
+            });
+        });
+
+        // Charts functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the data passed from Flask
+            const chartDates = {{ dates|tojson|safe }};
+            const chartCounts = {{ counts|tojson|safe }};
+            const statusData = {{ status_data|tojson|safe }};
+            const courierData = {{ courier_data|tojson|safe }};
+            const labData = {{ lab_data|tojson|safe }};
+
+            // Store chart instances
+            let shipmentsChart, statusChart, labChart, courierChart;
+
+            // Function to initialize charts
+            function initializeCharts(filteredDates = null, filteredCounts = null, filteredStatus = null, filteredLab = null, filteredCourier = null) {
+                // Use filtered data if provided, otherwise use original data
+                const dates = filteredDates || chartDates;
+                const counts = filteredCounts || chartCounts;
+                const status = filteredStatus || statusData;
+                const lab = filteredLab || labData;
+                const courier = filteredCourier || courierData;
+
+                // Destroy existing charts if they exist
+                if (shipmentsChart) shipmentsChart.destroy();
+                if (statusChart) statusChart.destroy();
+                if (labChart) labChart.destroy();
+                if (courierChart) courierChart.destroy();
+
+                // Initialize Shipments Chart
+                shipmentsChart = new Chart(document.getElementById('shipmentsChart').getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Number of Shipments',
+                            data: counts,
+                            borderColor: '#34495e',
+                            backgroundColor: 'rgba(52, 73, 94, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: { display: false },
+                            legend: { position: 'bottom' }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+
+                // Initialize Status Distribution Chart
+                statusChart = new Chart(document.getElementById('statusChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: status.labels,
+                        datasets: [{
+                            data: status.values,
+                            backgroundColor: [
+                                '#3498db',  // In Transit - Blue
+                                '#2ecc71',  // Delivered - Green
+                                '#f1c40f',  // Delayed - Yellow
+                                '#e74c3c'   // Cancelled - Red
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        },
+                        cutout: '60%'
+                    }
+                });
+
+                // Initialize Lab Distribution Chart
+                labChart = new Chart(document.getElementById('labChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: lab.labels,
+                        datasets: [{
+                            label: 'Shipments per Lab',
+                            data: lab.values,
+                            backgroundColor: '#3498db',
+                            borderColor: '#2980b9',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
+
+                // Initialize Courier Distribution Chart
+                courierChart = new Chart(document.getElementById('courierChart').getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: courier.labels,
+                        datasets: [{
+                            data: courier.values,
+                            backgroundColor: [
+                                '#34495e',
+                                '#3498db',
+                                '#2ecc71'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            // Initialize charts with original data
+            initializeCharts();
+
+            // Date filter functionality
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            const applyFilter = document.getElementById('applyFilter');
+            const resetFilter = document.getElementById('resetFilter');
+
+            // Set initial date range
+            if (chartDates.length > 0) {
+                startDate.value = chartDates[0];
+                endDate.value = chartDates[chartDates.length - 1];
+            }
+
+            // Function to filter data based on date range
+            function filterDataByDateRange(start, end) {
+                const startTimestamp = new Date(start).getTime();
+                const endTimestamp = new Date(end).getTime();
+
+                // Filter indices based on date range
+                const filteredIndices = chartDates.reduce((indices, date, index) => {
+                    const timestamp = new Date(date).getTime();
+                    if (timestamp >= startTimestamp && timestamp <= endTimestamp) {
+                        indices.push(index);
+                    }
+                    return indices;
+                }, []);
+
+                // Filter data for each chart
+                const filteredDates = filteredIndices.map(i => chartDates[i]);
+                const filteredCounts = filteredIndices.map(i => chartCounts[i]);
+
+                // Calculate total shipments in the filtered date range
+                const totalFilteredShipments = filteredCounts.reduce((sum, count) => sum + count, 0);
+
+                // Filter status data - recalculate percentages based on filtered date range
+                const filteredStatus = {
+                    labels: statusData.labels,
+                    values: statusData.values.map((_, index) => {
+                        const statusCount = filteredIndices.reduce((sum, i) => {
+                            // Each day's contribution to this status
+                            return sum + (chartCounts[i] * (statusData.values[index] / chartCounts.reduce((s, c) => s + c, 0)));
+                        }, 0);
+                        return Math.round(statusCount); // Round to whole numbers
+                    })
+                };
+
+                // Filter lab data - recalculate based on filtered date range
+                const filteredLab = {
+                    labels: labData.labels,
+                    values: labData.values.map((_, index) => {
+                        const labCount = filteredIndices.reduce((sum, i) => {
+                            // Each day's contribution to this lab
+                            return sum + (chartCounts[i] * (labData.values[index] / chartCounts.reduce((s, c) => s + c, 0)));
+                        }, 0);
+                        return Math.round(labCount); // Round to whole numbers
+                    })
+                };
+
+                // Filter courier data - recalculate based on filtered date range
+                const filteredCourier = {
+                    labels: courierData.labels,
+                    values: courierData.values.map((_, index) => {
+                        const courierCount = filteredIndices.reduce((sum, i) => {
+                            // Each day's contribution to this courier
+                            return sum + (chartCounts[i] * (courierData.values[index] / chartCounts.reduce((s, c) => s + c, 0)));
+                        }, 0);
+                        return Math.round(courierCount); // Round to whole numbers
+                    })
+                };
+
+                return {
+                    dates: filteredDates,
+                    counts: filteredCounts,
+                    status: filteredStatus,
+                    lab: filteredLab,
+                    courier: filteredCourier
+                };
+            }
+
+            // Apply filter button click handler
+            applyFilter.addEventListener('click', function() {
+                const start = startDate.value;
+                const end = endDate.value;
+                
+                if (start && end) {
+                    const filteredData = filterDataByDateRange(start, end);
+                    initializeCharts(
+                        filteredData.dates,
+                        filteredData.counts,
+                        filteredData.status,
+                        filteredData.lab,
+                        filteredData.courier
+                    );
+                }
+            });
+
+            // Reset filter button click handler
+            resetFilter.addEventListener('click', function() {
+                startDate.value = chartDates[0];
+                endDate.value = chartDates[chartDates.length - 1];
+                initializeCharts();
+            });
+        });
+    </script>
+</body>
+</html> 
