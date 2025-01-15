@@ -299,30 +299,38 @@ def get_tracking_details(tracking_number):
                 return date.strftime('%b %d, %Y')
             except:
                 return 'N/A'
+
+        # Helper function to truncate address
+        def truncate_address(address, max_length=40):
+            if not address or address == 'N/A':
+                return 'N/A'
+            if len(address) <= max_length:
+                return address
+            return address[:max_length] + '...'
         
         # Prepare shipment details
         shipment_details = {
             'timeline': get_tracking_timeline(tracking_number),
             'shipping_info': {
                 'from': {
-                    'location': first_event.get('SI_address', 'N/A'),
+                    'location': truncate_address(first_event.get('SI_address', 'N/A')),
                     'date': format_date(first_event.get('eventCreateTime', ''))
                 },
                 'to': {
-                    'location': latest_event.get('RI_address', 'N/A'),
+                    'location': truncate_address(latest_event.get('RI_address', 'N/A')),
                     'date': f"Estimated {format_date(latest_event.get('estimatedDeliveryDateEnd', ''))}"
                 }
             },
             'sender': {
                 'name': latest_event.get('SI_person_name', 'N/A'),
                 'company': latest_event.get('SI_company', 'N/A'),
-                'address': latest_event.get('SI_address', 'N/A'),
+                'address': truncate_address(latest_event.get('SI_address', 'N/A')),
                 'phone': latest_event.get('SI_person_phone', 'N/A')
             },
             'recipient': {
                 'name': latest_event.get('RI_person_name', 'N/A'),
                 'company': latest_event.get('RI_company', 'N/A'),
-                'address': latest_event.get('RI_address', 'N/A'),
+                'address': truncate_address(latest_event.get('RI_address', 'N/A')),
                 'phone': latest_event.get('RI_person_phone', 'N/A')
             },
             'package': {
