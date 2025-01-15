@@ -532,7 +532,9 @@ main {
 
 .shipment-list th:nth-child(2),
 .shipment-list td:nth-child(2) {
-    width: 90px; /* Created Date */
+    width: 120px; /* Created Date */
+    min-width: 120px;
+    padding: 15px 8px;
 }
 
 .shipment-list th:nth-child(3),
@@ -872,8 +874,8 @@ main {
     min-width: 130px;
 }
 .table-container table th:nth-child(2) { /* Created Date */
-    width: 90px;
-    min-width: 90px;
+    width: 120px;
+    min-width: 120px;
 }
 .table-container table th:nth-child(3) { /* Estimated Delivery Date */
     width: 90px;

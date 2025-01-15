@@ -374,17 +374,31 @@ def index():
             
             # Keep track of latest event for each tracking number
             if tracking_number not in unique_shipments:
-                unique_shipments[tracking_number] = event
+                unique_shipments[tracking_number] = {
+                    'latest_event': event,
+                    'first_event_time': event['eventCreateTime']
+                }
             else:
                 current_time = datetime.strptime(event['eventCreateTime'], '%Y-%m-%dT%H:%M:%S%z')
-                existing_time = datetime.strptime(unique_shipments[tracking_number]['eventCreateTime'], '%Y-%m-%dT%H:%M:%S%z')
+                existing_time = datetime.strptime(unique_shipments[tracking_number]['latest_event']['eventCreateTime'], '%Y-%m-%dT%H:%M:%S%z')
+                first_event_time = datetime.strptime(unique_shipments[tracking_number]['first_event_time'], '%Y-%m-%dT%H:%M:%S%z')
+                
+                # Update latest event if current is newer
                 if current_time > existing_time:
-                    unique_shipments[tracking_number] = event
+                    unique_shipments[tracking_number]['latest_event'] = event
+                
+                # Update first event time if current is older
+                if current_time < first_event_time:
+                    unique_shipments[tracking_number]['first_event_time'] = event['eventCreateTime']
 
         # Process status for each tracking number
         for tracking_number, events in events_by_tracking.items():
             # Sort events by timestamp
             events.sort(key=lambda x: x['eventCreateTime'])
+            
+            # Get the first event's creation time
+            first_event = events[0]
+            unique_shipments[tracking_number]['first_event_time'] = first_event['eventCreateTime']
             
             # Determine status
             status = 'Shipment Created'
@@ -405,10 +419,15 @@ def index():
                     status = 'Shipment Created'
 
             # Add status to the latest shipment data
-            unique_shipments[tracking_number]['currentStatus'] = status
+            unique_shipments[tracking_number]['latest_event']['currentStatus'] = status
 
         # Convert dictionary to list and sort by creation time
-        all_shipments = list(unique_shipments.values())
+        all_shipments = []
+        for tracking_data in unique_shipments.values():
+            shipment = tracking_data['latest_event'].copy()
+            shipment['eventCreateTime'] = tracking_data['first_event_time']  # Use the first event time
+            all_shipments.append(shipment)
+        
         all_shipments.sort(key=lambda x: x['eventCreateTime'], reverse=True)
 
         # Calculate counts

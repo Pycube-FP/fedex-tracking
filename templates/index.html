@@ -74,8 +74,8 @@
                             {% for shipment in shipments %}
                             <tr class="clickable-row" data-tracking="{{ shipment.trackingNumber }}">
                                 <td>{{ shipment.trackingNumber }}</td>
-                                <td>{{ shipment.eventCreateTime }}</td>
-                                <td>{{ shipment.estimatedDeliveryDateEnd }}</td>
+                                <td>{{ shipment.eventCreateTime.split('T')[0] }}</td>
+                                <td>{{ shipment.estimatedDeliveryDateEnd.split('T')[0] if shipment.estimatedDeliveryDateEnd else '' }}</td>
                                 <td>{{ shipment.RI_company }}</td>
                                 <td>Fedex ground</td>
                                 <td>{{ shipment.SI_company }}</td>
@@ -257,17 +257,18 @@
         </div>
     </div>
     <script>
-        // Function to format date to dd-mm-yyyy
+        // Function to format date to MMM DD, YYYY
         function formatDate(dateStr) {
             try {
                 const date = new Date(dateStr);
                 if (isNaN(date.getTime())) {
                     return dateStr;
                 }
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                const year = date.getFullYear();
-                return `${day}-${month}-${year}`;
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: '2-digit'
+                });
             } catch (e) {
                 return dateStr;
             }
