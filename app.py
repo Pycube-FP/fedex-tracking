@@ -21,7 +21,10 @@ boto3_session = boto3.Session(
 # Create DynamoDB resource
 dynamodb = boto3_session.resource('dynamodb')
 table = dynamodb.Table('fedexevents')
+
+# Configure logging
 logging.basicConfig(level=logging.INFO)
+app.logger.setLevel(logging.INFO)
 
 # Hardcoded users for demo (in production, use a database and hash passwords)
 USERS = {
@@ -170,7 +173,7 @@ def get_tracking_timeline(tracking_number):
 
         # Sort events by timestamp
         events.sort(key=lambda x: x['eventCreateTime'])
-        
+
         # Check if shipment is cancelled
         for event in events:
             if 'Shipment Cancelled' in event.get('eventDescription', ''):
@@ -295,10 +298,15 @@ def get_tracking_details(tracking_number):
         # Helper function to format date
         def format_date(date_str):
             try:
+                # Parse the date with timezone info
                 date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
-                return date.strftime('%b %d, %Y')
-            except:
-                return 'N/A'
+                # Convert to local time (like JavaScript does)
+                local_date = date.astimezone(tz=None)  # None means local timezone
+                formatted = local_date.strftime('%b %d, %Y')
+                return formatted
+            except Exception as e:
+                app.logger.error(f"Error formatting date: {e}")
+                return date_str
 
         # Helper function to truncate address
         def truncate_address(address, max_length=40):
@@ -374,6 +382,19 @@ def index():
     try:
         page = request.args.get('page', 1, type=int)
         per_page = 25
+
+        # Add format_date function at the start of the route
+        def format_date(date_str):
+            try:
+                # Parse the date with timezone info
+                date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
+                # Convert to local time (like JavaScript does)
+                local_date = date.astimezone(tz=None)  # None means local timezone
+                formatted = local_date.strftime('%b %d, %Y')
+                return formatted
+            except Exception as e:
+                app.logger.error(f"Error formatting date: {e}")
+                return date_str
 
         # Get all shipments in a single scan
         response = table.scan()
@@ -454,7 +475,9 @@ def index():
         all_shipments = []
         for tracking_data in unique_shipments.values():
             shipment = tracking_data['latest_event'].copy()
-            shipment['eventCreateTime'] = tracking_data['first_event_time']  # Use the first event time
+            # Format both dates properly here
+            shipment['eventCreateTime'] = format_date(tracking_data['first_event_time'])
+            shipment['estimatedDeliveryDateEnd'] = format_date(shipment.get('estimatedDeliveryDateEnd', ''))
             all_shipments.append(shipment)
         
         all_shipments.sort(key=lambda x: x['eventCreateTime'], reverse=True)
@@ -475,10 +498,23 @@ def index():
         end_idx = start_idx + per_page
         current_shipments = all_shipments[start_idx:end_idx]
 
+        # Calculate visible pages
+        visible_pages = []
+        if total_pages <= 3:
+            visible_pages = list(range(1, total_pages + 1))
+        else:
+            if page <= 2:
+                visible_pages = [1, 2, 3]
+            elif page >= total_pages - 1:
+                visible_pages = [total_pages - 2, total_pages - 1, total_pages]
+            else:
+                visible_pages = [page - 1, page, page + 1]
+
         return render_template('index.html', 
                             shipments=current_shipments,
                             current_page=page,
                             total_pages=total_pages,
+                            visible_pages=visible_pages,
                             total_shipments=total_shipments,
                             in_transit_count=in_transit_count,
                             delivered_count=delivered_count,
@@ -490,6 +526,7 @@ def index():
                              shipments=[], 
                              current_page=1, 
                              total_pages=1,
+                             visible_pages=[1],
                              total_shipments=0,
                              in_transit_count=0,
                              delivered_count=0,
