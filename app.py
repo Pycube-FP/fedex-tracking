@@ -190,6 +190,14 @@ def get_tracking_timeline(tracking_number):
             'Delivered': {'completed': False, 'timestamp': None}
         }
         
+        # First pass - find the earliest In Transit event
+        in_transit_time = None
+        for event in events:
+            desc = event.get('eventDescription', '')
+            if ('Departed' in desc or 'Arrived' in desc):
+                in_transit_time = event['eventCreateTime']
+                break
+        
         # Process each event
         for event in events:
             desc = event.get('eventDescription', '')
@@ -209,11 +217,17 @@ def get_tracking_timeline(tracking_number):
                 }
             
             # Check In Transit
-            elif ('Departed' in desc or 'Arrived' in desc) and not timeline['In Transit']['completed']:
+            elif ('Departed' in desc or 'Arrived' in desc):
                 timeline['In Transit'] = {
                     'completed': True,
                     'timestamp': event['eventCreateTime']
                 }
+                # Always mark Shipment Picked Up as completed when In Transit is detected
+                if not timeline['Shipment Picked Up']['completed']:
+                    timeline['Shipment Picked Up'] = {
+                        'completed': True,
+                        'timestamp': in_transit_time or event['eventCreateTime']
+                    }
             
             # Check Out For Delivery
             elif 'Out for Delivery' in desc and not timeline['Out For Delivery']['completed']:
@@ -228,6 +242,13 @@ def get_tracking_timeline(tracking_number):
                     'completed': True,
                     'timestamp': event['eventCreateTime']
                 }
+
+        # Final check - if In Transit is completed, ensure Shipment Picked Up is also completed
+        if timeline['In Transit']['completed'] and not timeline['Shipment Picked Up']['completed']:
+            timeline['Shipment Picked Up'] = {
+                'completed': True,
+                'timestamp': in_transit_time or timeline['In Transit']['timestamp']
+            }
 
         return timeline
     except Exception as e:
