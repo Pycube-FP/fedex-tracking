@@ -171,18 +171,100 @@ header {
     align-items: center;
     margin-bottom: 20px;
     padding: 0 20px;
+    background-color: #fff;
+    height: 50px;
 }
 
-.shipment-list h2 {
+.shipment-list-header h2 {
     margin: 0;
     color: #2c3e50;
+    font-size: 1.5rem;
 }
 
-.shipment-list input {
-    width: 300px;
-    padding: 10px;
-    border: 1px solid #ccc;
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 600px;
+    height: 40px;
+}
+
+.input-wrapper {
+    position: relative;
+    flex: 1;
+}
+
+.search-input {
+    padding: 8px 35px;
+    border: 1px solid #ddd;
     border-radius: 4px;
+    width: 100%;
+    font-size: 14px;
+    height: 40px;
+    padding-right: 30px; /* Space for the clear button */
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    z-index: 1;
+}
+
+.clear-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    z-index: 2;
+}
+
+.clear-icon:hover {
+    color: #34495e;
+}
+
+.search-button {
+    padding: 0 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s;
+    background-color: #34495e;
+    color: white;
+    height: 40px;
+    white-space: nowrap;
+}
+
+.search-button:hover {
+    background-color: #2c3e50;
+}
+
+.search-button i {
+    font-size: 12px;
 }
 
 .shipment-list table {
@@ -971,63 +1053,296 @@ main {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background-color: #f8f9fa;
+    background: 
+        linear-gradient(135deg, rgba(52, 152, 219, 0.05) 0%, rgba(52, 152, 219, 0.1) 100%),
+        linear-gradient(45deg, #ffffff 25%, transparent 25%) -50px 0,
+        linear-gradient(-45deg, #ffffff 25%, transparent 25%) -50px 0,
+        linear-gradient(45deg, transparent 75%, #ffffff 75%) -50px 0,
+        linear-gradient(-45deg, transparent 75%, #ffffff 75%) -50px 0;
+    background-size: 
+        100% 100%,
+        100px 100px,
+        100px 100px,
+        100px 100px,
+        100px 100px;
+    background-color: #f5f7fa;
 }
 
 .login-box {
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        0 4px 8px rgba(52, 152, 219, 0.1);
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+}
+
+.login-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.12),
+        0 8px 16px rgba(52, 152, 219, 0.15);
 }
 
 .login-box .logo {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .login-box .logo img {
-    max-width: 200px;
+    max-width: 150px;
     height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.welcome-text {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.welcome-text h2 {
+    color: #2c3e50;
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-text p {
+    color: #7f8c8d;
+    font-size: 0.95rem;
 }
 
 .login-box .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
 }
 
-.login-box label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #495057;
+.login-box .input-group {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.login-box .input-group:focus-within {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.login-box .input-group-text {
+    background-color: white;
+    border: none;
+    color: #95a5a6;
+    padding-left: 1rem;
 }
 
 .login-box .form-control {
-    width: 100%;
+    border: none;
     padding: 0.75rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    box-shadow: none;
+}
+
+.login-box .form-control:focus {
+    box-shadow: none;
+}
+
+.login-box .toggle-password {
+    border: none;
+    background: none;
+    color: #95a5a6;
+    padding: 0 1rem;
+    transition: color 0.3s ease;
+}
+
+.login-box .toggle-password:hover {
+    color: #3498db;
+}
+
+.login-box .form-check {
+    margin: 1rem 0;
+}
+
+.login-box .form-check-input:checked {
+    background-color: #3498db;
+    border-color: #3498db;
 }
 
 .login-box .btn-primary {
     width: 100%;
     padding: 0.75rem;
-    background-color: #0d6efd;
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     color: white;
     font-weight: 500;
-    margin-top: 1rem;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    transition: all 0.3s ease;
 }
 
 .login-box .btn-primary:hover {
-    background-color: #0b5ed7;
+    background: linear-gradient(135deg, #2980b9 0%, #2472a4 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(41, 128, 185, 0.2);
 }
 
 .login-box .alert {
-    margin-bottom: 1rem;
-    padding: 0.75rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.forgot-password {
+    color: #7f8c8d;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.forgot-password:hover {
+    color: #3498db;
+    text-decoration: none;
+}
+
+/* Search Box Styles */
+.search-container {
+    display: flex;
+    align-items: center;
+}
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 600px;
+    height: 40px;
+}
+
+.search-input {
+    padding: 8px 35px;
+    border: 1px solid #ddd;
     border-radius: 4px;
+    width: 100%;
+    font-size: 14px;
+    height: 40px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    z-index: 1;
+}
+
+.clear-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #666;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    z-index: 2;
+}
+
+.clear-icon:hover {
+    color: #34495e;
+}
+
+.search-button {
+    padding: 0 15px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.2s;
+    background-color: #34495e;
+    color: white;
+    height: 40px;
+    white-space: nowrap;
+}
+
+.search-button:hover {
+    background-color: #2c3e50;
+}
+
+.search-button i {
+    font-size: 12px;
+}
+
+/* Error Page Styles */
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+}
+
+.error-box {
+    background: white;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 500px;
+    width: 90%;
+}
+
+.error-icon {
+    font-size: 4rem;
+    color: #e74c3c;
+    margin-bottom: 1.5rem;
+}
+
+.error-box h1 {
+    color: #2c3e50;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+}
+
+.error-message {
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.error-box .btn-primary {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.error-box .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
 } 

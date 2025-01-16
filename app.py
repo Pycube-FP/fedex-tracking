@@ -381,22 +381,9 @@ def analytics():
 def index():
     try:
         page = request.args.get('page', 1, type=int)
-        per_page = 25
-
-        # Add format_date function at the start of the route
-        def format_date(date_str):
-            try:
-                # Parse the date with timezone info
-                date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
-                # Convert to local time (like JavaScript does)
-                local_date = date.astimezone(tz=None)  # None means local timezone
-                formatted = local_date.strftime('%b %d, %Y')
-                return formatted
-            except Exception as e:
-                app.logger.error(f"Error formatting date: {e}")
-                return date_str
-
-        # Get all shipments in a single scan
+        search_query = request.args.get('search', '').strip()
+        
+        # Get all shipments from DynamoDB
         response = table.scan()
         all_events = response['Items']
         
@@ -404,7 +391,7 @@ def index():
         while 'LastEvaluatedKey' in response:
             response = table.scan(ExclusiveStartKey=response['LastEvaluatedKey'])
             all_events.extend(response['Items'])
-
+        
         # Organize events by tracking number
         events_by_tracking = {}
         unique_shipments = {}
@@ -467,7 +454,7 @@ def index():
                     status = 'Shipment Picked Up'
                 elif 'Shipment information sent to FedEx' in desc:
                     status = 'Shipment Created'
-
+            
             # Add status to the latest shipment data
             unique_shipments[tracking_number]['latest_event']['currentStatus'] = status
 
@@ -475,63 +462,70 @@ def index():
         all_shipments = []
         for tracking_data in unique_shipments.values():
             shipment = tracking_data['latest_event'].copy()
-            # Format both dates properly here
-            shipment['eventCreateTime'] = format_date(tracking_data['first_event_time'])
-            shipment['estimatedDeliveryDateEnd'] = format_date(shipment.get('estimatedDeliveryDateEnd', ''))
+            shipment['eventCreateTime'] = tracking_data['first_event_time']
             all_shipments.append(shipment)
         
+        # Sort shipments by creation time
         all_shipments.sort(key=lambda x: x['eventCreateTime'], reverse=True)
-
-        # Calculate counts
-        delivered_count = sum(1 for shipment in all_shipments 
-                            if shipment.get('currentStatus') == 'Delivered')
-        cancelled_count = sum(1 for shipment in all_shipments 
-                            if shipment.get('currentStatus') == 'Shipment Cancelled')
-        in_transit_count = sum(1 for shipment in all_shipments 
-                            if shipment.get('currentStatus') in ['In Transit', 'Out For Delivery'])
-        delayed_count = len(delayed_tracking_numbers)
-
-        # Calculate pagination
+        
+        # Calculate KPI stats before applying search filter
         total_shipments = len(all_shipments)
-        total_pages = (total_shipments + per_page - 1) // per_page
+        in_transit_count = sum(1 for s in all_shipments if s['currentStatus'] in ['In Transit', 'Out For Delivery'])
+        delivered_count = sum(1 for s in all_shipments if s['currentStatus'] == 'Delivered')
+        delayed_count = len(delayed_tracking_numbers)
+        cancelled_count = sum(1 for s in all_shipments if s['currentStatus'] == 'Shipment Cancelled')
+        
+        # Apply search filter if provided (only affects displayed shipments, not KPI stats)
+        filtered_shipments = all_shipments
+        if search_query:
+            filtered_shipments = [s for s in all_shipments if search_query.lower() in s['trackingNumber'].lower()]
+        
+        # Pagination on filtered results
+        per_page = 25
+        total_pages = (len(filtered_shipments) + per_page - 1) // per_page
+        page = min(max(page, 1), total_pages) if total_pages > 0 else 1
+        
         start_idx = (page - 1) * per_page
         end_idx = start_idx + per_page
-        current_shipments = all_shipments[start_idx:end_idx]
-
-        # Calculate visible pages
-        visible_pages = []
+        current_shipments = filtered_shipments[start_idx:end_idx]
+        
+        # Calculate visible pages for pagination
         if total_pages <= 3:
-            visible_pages = list(range(1, total_pages + 1))
+            visible_pages = range(1, total_pages + 1)
         else:
             if page <= 2:
-                visible_pages = [1, 2, 3]
+                visible_pages = range(1, 4)
             elif page >= total_pages - 1:
-                visible_pages = [total_pages - 2, total_pages - 1, total_pages]
+                visible_pages = range(total_pages - 2, total_pages + 1)
             else:
-                visible_pages = [page - 1, page, page + 1]
+                visible_pages = range(page - 1, page + 2)
 
-        return render_template('index.html', 
+        return render_template('index.html',
                             shipments=current_shipments,
-                            current_page=page,
-                            total_pages=total_pages,
-                            visible_pages=visible_pages,
                             total_shipments=total_shipments,
                             in_transit_count=in_transit_count,
                             delivered_count=delivered_count,
                             delayed_count=delayed_count,
-                            cancelled_count=cancelled_count)
+                            cancelled_count=cancelled_count,
+                            current_page=page,
+                            total_pages=total_pages,
+                            visible_pages=visible_pages,
+                            search_query=search_query)
+                            
     except Exception as e:
-        logging.error(f"Error fetching data: {e}")
-        return render_template('index.html', 
-                             shipments=[], 
-                             current_page=1, 
-                             total_pages=1,
-                             visible_pages=[1],
-                             total_shipments=0,
-                             in_transit_count=0,
-                             delivered_count=0,
-                             delayed_count=0,
-                             cancelled_count=0)
+        app.logger.error(f"Error in index route: {str(e)}")
+        return render_template('index.html',
+                            shipments=[],
+                            total_shipments=0,
+                            in_transit_count=0,
+                            delivered_count=0,
+                            delayed_count=0,
+                            cancelled_count=0,
+                            current_page=1,
+                            total_pages=1,
+                            visible_pages=range(1, 2),
+                            search_query=search_query,
+                            error="An error occurred while loading the data. Please try again later.")
 
 @app.route('/shipments')
 @login_required

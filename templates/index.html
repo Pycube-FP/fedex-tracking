@@ -56,6 +56,22 @@
             <div class="shipment-list">
                 <div class="shipment-list-header">
                     <h2>Shipment List</h2>
+                    <div class="search-container">
+                        <div class="search-box">
+                            <i class="fas fa-search search-icon"></i>
+                            <div class="input-wrapper">
+                                <input type="text" id="trackingSearch" placeholder="Search tracking number..." class="search-input" value="{{ search_query }}">
+                                {% if search_query %}
+                                <button type="button" class="clear-icon" id="clearBtn" aria-label="Clear search">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            <button type="button" class="search-button" id="searchBtn">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="table-container">
                     <table>
@@ -492,6 +508,48 @@
             document.addEventListener('click', function() {
                 dropdownMenu.classList.remove('show');
             });
+        });
+
+        // Update the search functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('trackingSearch');
+            const searchBtn = document.getElementById('searchBtn');
+            const clearBtn = document.getElementById('clearBtn');
+
+            function performSearch() {
+                const searchTerm = searchInput.value.trim();
+                const currentUrl = new URL(window.location.href);
+                
+                if (searchTerm) {
+                    currentUrl.searchParams.set('search', searchTerm);
+                    currentUrl.searchParams.set('page', '1');
+                } else {
+                    currentUrl.searchParams.delete('search');
+                }
+                
+                window.location.href = currentUrl.toString();
+            }
+
+            // Search button click handler
+            searchBtn.addEventListener('click', performSearch);
+
+            // Enter key handler
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch();
+                }
+            });
+
+            // Clear button click handler
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function() {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.delete('search');
+                    currentUrl.searchParams.set('page', '1');
+                    window.location.href = currentUrl.toString();
+                });
+            }
         });
     </script>
 </body>
