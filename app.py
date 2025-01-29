@@ -538,6 +538,17 @@ def get_shipments():
         logging.error(f"Error fetching data: {e}")
         return jsonify({'error': 'Failed to fetch data'})
 
+@app.route('/batching')
+@login_required
+def batching():
+    return render_template('batching.html')
+
+@app.route('/receiving')
+@login_required
+def receiving():
+    return render_template('receiving.html')
+
 if __name__ == '__main__':
-    # In production, use gunicorn instead of app.run()
-    app.run(host='0.0.0.0', port=5000) 
+    # Enable debug mode for hot reloading and detailed error messages
+    app.debug = True
+    app.run(host='0.0.0.0', port=5000, debug=True) 
