@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FedEx Tracking - Receiving</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .kpi-container {
+            width: 80%;
+            margin: 0 auto 30px auto;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+        .kpi {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            color: #2c3e50;
+            position: relative;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .kpi span {
+            display: block;
+            font-size: 28px;
+            font-weight: 500;
+            margin-top: 6px;
+            color: #000000;
+        }
+        .receiving-section {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        .search-section {
+            margin-bottom: 30px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .search-section h2 {
+            color: #2c3e50;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            color: #2c3e50;
+        }
+        .search-input:focus {
+            border-color: #34495e;
+            box-shadow: 0 0 0 0.2rem rgba(52, 73, 94, 0.15);
+            outline: none;
+        }
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 1rem;
+        }
+        .pending-deliveries {
+            margin-top: 30px;
+        }
+        .pending-deliveries h2 {
+            color: #2c3e50;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .table-container {
+            width: 100%;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        .table {
+            width: 100%;
+            margin-bottom: 0;
+            background-color: white;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table thead th {
+            background-color: #34495e;
+            color: white;
+            padding: 15px;
+            font-weight: 500;
+            text-align: center;
+            border: none;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        .table thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+        .table thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .clickable-row:hover {
+            background-color: #f8f9fa;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .modal-body {
+            padding: 25px;
+        }
+        .sample-checklist {
+            margin-top: 20px;
+        }
+        .sample-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f8f9fa;
+        }
+        .sample-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .sample-status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .comments-section {
+            margin-top: 10px;
+        }
+        .signature-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .signature-pad {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            height: 150px;
+            margin: 15px 0;
+            background-color: #fff;
+        }
+        /* Modal Styles */
+        .modal {
+            z-index: 1050 !important;
+        }
+        
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        
+        .modal-dialog {
+            z-index: 1051 !important;
+            pointer-events: auto !important;
+        }
+        
+        .modal-content {
+            pointer-events: auto !important;
+            background-color: #fff;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+            max-height: calc(100vh - 210px);
+            overflow-y: auto;
+        }
+        
+        .sample-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .sample-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        
+        .sample-status {
+            min-width: 150px;
+        }
+        
+        .form-select, .form-control {
+            pointer-events: auto !important;
+        }
+        
+        .btn {
+            pointer-events: auto !important;
+        }
+        
+        /* Ensure the modal is above everything else */
+        #receivingModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            outline: 0;
+            pointer-events: auto !important;
+        }
+        .badge.bg-in-transit {
+            background-color: #f1c40f !important;
+            color: #2c3e50;
+        }
+        .badge.bg-received {
+            background-color: #34495e !important;
+        }
+        .btn-primary {
+            background-color: #34495e;
+            border-color: #34495e;
+        }
+        .btn-primary:hover {
+            background-color: #2c3e50;
+            border-color: #2c3e50;
+        }
+        .btn-info {
+            background-color: #34495e !important;
+            border-color: #34495e !important;
+            color: #ffffff !important;
+        }
+        .btn-info:hover {
+            background-color: #2c3e50 !important;
+            border-color: #2c3e50 !important;
+            color: #ffffff !important;
+        }
+        .badge.bg-damaged {
+            background-color: #e74c3c !important;
+            color: #ffffff !important;
+        }
+        .badge.bg-missing {
+            background-color: #c0392b !important;
+            color: #ffffff !important;
+        }
+        .badge.bg-multiple-issues {
+            background-color: #c0392b !important;
+            color: #ffffff !important;
+        }
+        .badge.bg-warning {
+            background-color: #e74c3c !important;
+            color: #ffffff !important;
+        }
+        .badge.bg-danger {
+            background-color: #c0392b !important;
+            color: #ffffff !important;
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .nav-tabs {
+            border: none;
+            margin-bottom: 20px;
+        }
+        .nav-tabs .nav-link {
+            color: #6c757d;
+            border: none;
+            padding: 10px 20px;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .nav-tabs .nav-link.active {
+            color: #34495e;
+            border-bottom: 3px solid #34495e;
+            background: none;
+        }
+        .nav-tabs .nav-link:hover {
+            color: #34495e;
+            border-color: transparent;
+        }
+        .table-section {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        .table-section h2 {
+            color: #2c3e50;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #d1d8e0;
+        }
+        .empty-state p {
+            font-size: 1rem;
+            margin: 0;
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1060;
+            pointer-events: none;
+        }
+        .custom-toast {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 300px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            border-left: 4px solid #34495e;
+            pointer-events: auto;
+        }
+        .custom-toast.show {
+            transform: translateX(0);
+        }
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #34495e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .toast-icon i {
+            color: white;
+            font-size: 14px;
+        }
+        .toast-content {
+            flex-grow: 1;
+        }
+        .toast-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+            font-size: 1rem;
+        }
+        .toast-message {
+            color: #6c757d;
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+        }
+        .toast-close {
+            color: #6c757d;
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+            pointer-events: auto;
+        }
+        .toast-close:hover {
+            color: #2c3e50;
+        }
+        .sample-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #e9ecef;
+        }
+        .sample-type-biopsy {
+            background-color: #e8f5e9;
+            border-color: #c8e6c9;
+            color: #2e7d32;
+        }
+        .sample-type-slides {
+            background-color: #e3f2fd;
+            border-color: #bbdefb;
+            color: #1565c0;
+        }
+        .sample-type-other {
+            background-color: #f3e5f5;
+            border-color: #e1bee7;
+            color: #7b1fa2;
+        }
+        .btn-notify {
+            background-color: #f39c12;
+            border-color: #f39c12;
+            color: #ffffff;
+        }
+        .btn-notify:hover {
+            background-color: #e67e22;
+            border-color: #e67e22;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/static/pycube-logo.png" alt="Pycube">
+        </div>
+        <nav class="main-nav">
+            <a href="/batching" class="nav-link">Batching</a>
+            <a href="/" class="nav-link">Shipments</a>
+            <a href="/receiving" class="nav-link active">Receiving</a>
+            <a href="/analytics" class="nav-link">Analytics</a>
+        </nav>
+        <div class="user-info">
+            {% if 'username' in session %}
+            <div class="user-profile-dropdown">
+                <div class="user-profile-trigger">
+                    <img src="/static/profile.jpg" alt="Profile" class="profile-image">
+                    <div class="user-details">
+                        <div class="user-name">{{ session['username'] }}</div>
+                        <div class="user-role">Lab Technician</div>
+                    </div>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        User Profile
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Log Out
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main>
+        <div class="container-wrapper">
+            <!-- KPI Section -->
+            <div class="kpi-container">
+                <div class="kpi">
+                    <div class="kpi-content">
+                        Expected Deliveries<br><span id="expectedDeliveries">0</span>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-content">
+                        Received Today<br><span id="receivedToday">0</span>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-content">
+                        Pending Receipt<br><span id="pendingReceipt">0</span>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-content">
+                        With Discrepancies<br><span id="withDiscrepancies">0</span>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-content">
+                        Complete Receipt<br><span id="completeReceipt">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receiving Section -->
+            <div class="receiving-section">
+                <div class="search-section">
+                    <h2>Search Shipment</h2>
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" id="shipmentSearch" 
+                               placeholder="Enter Tracking Number or Shipment ID...">
+                    </div>
+                </div>
+
+                <div class="tab-container">
+                    <ul class="nav nav-tabs" id="deliveryTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="expected-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#expected" type="button" role="tab">
+                                Expected Deliveries
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="received-tab" data-bs-toggle="tab" 
+                                    data-bs-target="#received" type="button" role="tab">
+                                Received Deliveries
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="deliveryTabContent">
+                        <!-- Expected Deliveries Tab -->
+                        <div class="tab-pane fade show active" id="expected" role="tabpanel">
+                            <div class="table-section">
+                                <div class="table-container">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Batch ID</th>
+                                                <th>Tracking Number</th>
+                                                <th>Origin</th>
+                                                <th>Expected Samples</th>
+                                                <th>Ship Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="expectedDeliveriesTable">
+                                        </tbody>
+                                    </table>
+                                    <div id="expectedEmptyState" class="empty-state" style="display: none;">
+                                        <i class="fas fa-inbox"></i>
+                                        <p>No expected deliveries at the moment</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Received Deliveries Tab -->
+                        <div class="tab-pane fade" id="received" role="tabpanel">
+                            <div class="table-section">
+                                <div class="table-container">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Batch ID</th>
+                                                <th>Tracking Number</th>
+                                                <th>Origin</th>
+                                                <th>Samples</th>
+                                                <th>Received Date</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="receivedDeliveriesTable">
+                                        </tbody>
+                                    </table>
+                                    <div id="receivedEmptyState" class="empty-state">
+                                        <i class="fas fa-check-circle"></i>
+                                        <p>No received deliveries yet</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Receiving Modal -->
+    <div class="modal fade" id="receivingModal" tabindex="-1" role="dialog" aria-labelledby="receivingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="receivingModalLabel">Receive Shipment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="shipment-info">
+                        <h6>Shipment Details</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Batch ID:</strong> <span id="modalBatchId"></span></p>
+                                <p><strong>Tracking Number:</strong> <span id="modalTrackingNumber"></span></p>
+                                <p><strong>Origin:</strong> <span id="modalOrigin"></span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Ship Date:</strong> <span id="modalShipDate"></span></p>
+                                <p><strong>Expected Samples:</strong> <span id="modalExpectedSamples"></span></p>
+                                <p><strong>Current Status:</strong> <span id="modalStatus"></span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sample-checklist">
+                        <h6>Sample Check-In</h6>
+                        <div id="samplesList">
+                            <!-- Sample items will be added here dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="signature-section">
+                        <h6>Confirmation</h6>
+                        <p>By signing below, you confirm receipt of the samples as indicated above.</p>
+                        <div class="signature-pad"></div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="confirmReceiptBtn">Confirm Receipt</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Bootstrap components
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+            // Initialize the modal with specific options
+            const receivingModal = new bootstrap.Modal(document.getElementById('receivingModal'), {
+                backdrop: 'static',
+                keyboard: false,
+                focus: true
+            });
+
+            // Sample data for demonstration
+            const pendingDeliveries = [
+                {
+                    batchId: 'B123456001',
+                    trackingNumber: '123456789012',
+                    origin: 'Clinic 1',
+                    expectedSamples: 3,
+                    shipDate: '2024-01-24 09:00 AM',
+                    status: 'In Transit',
+                    samples: [
+                        { id: 'S001', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12345' },
+                        { id: 'S002', type: 'Glass Slides', patientRef: 'P12346' },
+                        { id: 'S003', type: 'Other', patientRef: 'P12347' }
+                    ]
+                },
+                {
+                    batchId: 'B123456002',
+                    trackingNumber: '234567890123',
+                    origin: 'Clinic 2',
+                    expectedSamples: 2,
+                    shipDate: '2024-01-24 10:30 AM',
+                    status: 'In Transit',
+                    samples: [
+                        { id: 'S004', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12348' },
+                        { id: 'S005', type: 'Glass Slides', patientRef: 'P12349' }
+                    ]
+                },
+                {
+                    batchId: 'B123456003',
+                    trackingNumber: '345678901234',
+                    origin: 'Clinic 3',
+                    expectedSamples: 4,
+                    shipDate: '2024-01-24 11:45 AM',
+                    status: 'In Transit',
+                    samples: [
+                        { id: 'S006', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12350' },
+                        { id: 'S007', type: 'Glass Slides', patientRef: 'P12351' },
+                        { id: 'S008', type: 'Other', patientRef: 'P12352' },
+                        { id: 'S009', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12353' }
+                    ]
+                },
+                {
+                    batchId: 'B123456004',
+                    trackingNumber: '456789012345',
+                    origin: 'Clinic 1',
+                    expectedSamples: 1,
+                    shipDate: '2024-01-24 13:15 PM',
+                    status: 'In Transit',
+                    samples: [
+                        { id: 'S010', type: 'Glass Slides', patientRef: 'P12354' }
+                    ]
+                },
+                {
+                    batchId: 'B123456005',
+                    trackingNumber: '567890123456',
+                    origin: 'Clinic 2',
+                    expectedSamples: 3,
+                    shipDate: '2024-01-24 14:30 PM',
+                    status: 'In Transit',
+                    samples: [
+                        { id: 'S011', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12355' },
+                        { id: 'S012', type: 'Glass Slides', patientRef: 'P12356' },
+                        { id: 'S013', type: 'Other', patientRef: 'P12357' }
+                    ]
+                }
+            ];
+
+            // Add this after pendingDeliveries declaration
+            const initialReceivedDeliveries = [
+                {
+                    batchId: 'B123455999',
+                    trackingNumber: '123456788999',
+                    origin: 'Clinic 1',
+                    expectedSamples: 3,
+                    receivedDate: '2024-01-24 08:30 AM',
+                    status: 'Received Complete',
+                    samples: [
+                        { id: 'S001', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12340', status: 'received', comments: 'All samples in good condition' },
+                        { id: 'S002', type: 'Glass Slides', patientRef: 'P12341', status: 'received', comments: '' },
+                        { id: 'S003', type: 'Other', patientRef: 'P12342', status: 'received', comments: '' }
+                    ]
+                },
+                {
+                    batchId: 'B123455998',
+                    trackingNumber: '123456788998',
+                    origin: 'Clinic 2',
+                    expectedSamples: 2,
+                    receivedDate: '2024-01-24 09:15 AM',
+                    status: 'Missing Samples',
+                    samples: [
+                        { id: 'S004', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12343', status: 'missing', comments: 'Sample not found in package' },
+                        { id: 'S005', type: 'Glass Slides', patientRef: 'P12344', status: 'received', comments: '' }
+                    ]
+                },
+                {
+                    batchId: 'B123455997',
+                    trackingNumber: '123456788997',
+                    origin: 'Clinic 3',
+                    expectedSamples: 2,
+                    receivedDate: '2024-01-24 10:45 AM',
+                    status: 'Damaged Samples',
+                    samples: [
+                        { id: 'S006', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12345', status: 'damaged', comments: 'Container leaked during transit' },
+                        { id: 'S007', type: 'Glass Slides', patientRef: 'P12346', status: 'received', comments: '' }
+                    ]
+                }
+            ];
+
+            // Update KPIs
+            document.getElementById('expectedDeliveries').textContent = pendingDeliveries.length;
+            document.getElementById('pendingReceipt').textContent = pendingDeliveries.length;
+
+            // Populate expected deliveries table
+            const expectedDeliveriesTable = document.getElementById('expectedDeliveriesTable');
+            pendingDeliveries.forEach(delivery => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${delivery.batchId}</td>
+                    <td>${delivery.trackingNumber}</td>
+                    <td>${delivery.origin}</td>
+                    <td>${delivery.expectedSamples}</td>
+                    <td>${delivery.shipDate}</td>
+                    <td><span class="badge bg-in-transit">In Transit</span></td>
+                    <td>
+                        <button type="button" class="btn btn-primary btn-sm receive-btn">
+                            <i class="fas fa-check-circle"></i> Receive
+                        </button>
+                    </td>
+                `;
+
+                // Add click handler for the receive button
+                const receiveBtn = row.querySelector('.receive-btn');
+                receiveBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    showReceivingModal(delivery);
+                });
+
+                expectedDeliveriesTable.appendChild(row);
+            });
+
+            // Initialize received deliveries
+            const receivedDeliveriesTable = document.getElementById('receivedDeliveriesTable');
+            initialReceivedDeliveries.forEach(delivery => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${delivery.batchId}</td>
+                    <td>${delivery.trackingNumber}</td>
+                    <td>${delivery.origin}</td>
+                    <td>${delivery.expectedSamples}</td>
+                    <td>${delivery.receivedDate}</td>
+                    <td><span class="badge ${getStatusBadgeClass(delivery.status)}">${delivery.status}</span></td>
+                    <td>
+                        <button type="button" class="btn btn-info btn-sm view-details-btn">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                        ${(delivery.status === 'Missing Samples' || delivery.status === 'Damaged Samples' || delivery.status === 'Multiple Issues') ? `
+                        <button type="button" class="btn btn-notify btn-sm notify-clinic-btn" data-batch-id="${delivery.batchId}">
+                            <i class="fas fa-bell"></i> Notify Clinic
+                        </button>
+                        ` : ''}
+                    </td>
+                `;
+
+                // Add click handler for view details button
+                const viewDetailsBtn = row.querySelector('.view-details-btn');
+                viewDetailsBtn.addEventListener('click', () => {
+                    showReceiptDetails(delivery.batchId, delivery.samples);
+                });
+
+                // Add click handler for notify clinic button
+                const notifyBtn = row.querySelector('.notify-clinic-btn');
+                if (notifyBtn) {
+                    notifyBtn.addEventListener('click', () => {
+                        notifyClinic(delivery);
+                    });
+                }
+
+                receivedDeliveriesTable.appendChild(row);
+            });
+
+            // Update KPIs with initial data
+            document.getElementById('receivedToday').textContent = initialReceivedDeliveries.length;
+            document.getElementById('withDiscrepancies').textContent = 
+                initialReceivedDeliveries.filter(d => 
+                    d.status === 'Missing Samples' || 
+                    d.status === 'Damaged Samples' || 
+                    d.status === 'Multiple Issues'
+                ).length;
+            document.getElementById('completeReceipt').textContent = 
+                initialReceivedDeliveries.filter(d => d.status === 'Received Complete').length;
+
+            // Helper function to get status badge class
+            function getStatusBadgeClass(status) {
+                const classes = {
+                    'Received Complete': 'bg-success',
+                    'Missing Samples': 'bg-warning',
+                    'Damaged Samples': 'bg-danger',
+                    'Multiple Issues': 'bg-danger'
+                };
+                return classes[status] || 'bg-secondary';
+            }
+
+            // Function to show receiving modal with shipment details
+            function showReceivingModal(delivery) {
+                // Populate modal with shipment details
+                document.getElementById('modalBatchId').textContent = delivery.batchId;
+                document.getElementById('modalTrackingNumber').textContent = delivery.trackingNumber;
+                document.getElementById('modalOrigin').textContent = delivery.origin;
+                document.getElementById('modalShipDate').textContent = delivery.shipDate;
+                document.getElementById('modalExpectedSamples').textContent = delivery.expectedSamples;
+                document.getElementById('modalStatus').textContent = delivery.status;
+
+                // Populate samples list
+                const samplesList = document.getElementById('samplesList');
+                samplesList.innerHTML = delivery.samples.map(sample => `
+                    <div class="sample-item">
+                        <div class="sample-header">
+                            <div class="sample-info">
+                                <p><strong>Sample ID:</strong> ${sample.id}</p>
+                                <p><strong>Type:</strong> ${getSampleTypeBadge(sample.type)}</p>
+                                <p><strong>Patient Ref:</strong> ${sample.patientRef}</p>
+                            </div>
+                            <div class="sample-status">
+                                <select class="form-select">
+                                    <option value="" selected disabled>Select Status</option>
+                                    <option value="received">Received</option>
+                                    <option value="missing">Missing</option>
+                                    <option value="damaged">Damaged</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="comments-section">
+                            <textarea class="form-control" rows="2" 
+                                    placeholder="Add comments (e.g., condition issues, discrepancies)"></textarea>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Show the modal
+                receivingModal.show();
+
+                // Ensure the modal is properly focused and interactive
+                document.getElementById('receivingModal').style.display = 'block';
+                document.getElementById('receivingModal').classList.add('show');
+            }
+
+            // Update search functionality to search in both tables
+            const searchInput = document.getElementById('shipmentSearch');
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                // Search in expected deliveries
+                const expectedRows = document.getElementById('expectedDeliveriesTable').getElementsByTagName('tr');
+                Array.from(expectedRows).forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+                
+                // Search in received deliveries
+                const receivedRows = document.getElementById('receivedDeliveriesTable').getElementsByTagName('tr');
+                Array.from(receivedRows).forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+
+            // Function to determine overall shipment status based on sample statuses
+            function determineShipmentStatus(sampleStatuses) {
+                if (sampleStatuses.length === 0) return 'Pending';
+                
+                const hasMissing = sampleStatuses.includes('missing');
+                const hasDamaged = sampleStatuses.includes('damaged');
+                const hasReceived = sampleStatuses.includes('received');
+                
+                if (hasMissing && hasDamaged) {
+                    return 'Multiple Issues';
+                } else if (hasMissing) {
+                    return 'Missing Samples';
+                } else if (hasDamaged) {
+                    return 'Damaged Samples';
+                } else if (hasReceived) {
+                    return 'Received Complete';
+                }
+                return 'Pending';
+            }
+
+            // Function to get status badge HTML
+            function getStatusBadgeHTML(status) {
+                const badgeClasses = {
+                    'Multiple Issues': 'bg-danger',
+                    'Missing Samples': 'bg-warning',
+                    'Damaged Samples': 'bg-warning',
+                    'Received Complete': 'bg-success',
+                    'Pending': 'bg-primary',
+                    'In Transit': 'bg-in-transit'
+                };
+                
+                return `<span class="badge ${badgeClasses[status]}">${status}</span>`;
+            }
+
+            // Function to move delivery from expected to received
+            function moveToReceived(delivery, status, sampleDetails) {
+                // Remove from expected deliveries
+                const expectedRow = Array.from(document.getElementById('expectedDeliveriesTable').getElementsByTagName('tr'))
+                    .find(row => row.cells[0].textContent === delivery.batchId);
+                if (expectedRow) {
+                    expectedRow.remove();
+                }
+
+                // Add to received deliveries
+                const receivedTable = document.getElementById('receivedDeliveriesTable');
+                const newRow = document.createElement('tr');
+                const receivedDate = new Date().toLocaleString();
+                
+                newRow.innerHTML = `
+                    <td>${delivery.batchId}</td>
+                    <td>${delivery.trackingNumber}</td>
+                    <td>${delivery.origin}</td>
+                    <td>${delivery.expectedSamples}</td>
+                    <td>${receivedDate}</td>
+                    <td>${getStatusBadgeHTML(status)}</td>
+                    <td>
+                        <button type="button" class="btn btn-info btn-sm view-details-btn">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                    </td>
+                `;
+
+                // Add click handler for view details button
+                const viewDetailsBtn = newRow.querySelector('.view-details-btn');
+                viewDetailsBtn.addEventListener('click', () => {
+                    showReceiptDetails(delivery.batchId, sampleDetails);
+                });
+
+                receivedTable.insertBefore(newRow, receivedTable.firstChild);
+                
+                // Update empty states
+                updateEmptyStates();
+            }
+
+            // Function to update empty states
+            function updateEmptyStates() {
+                const expectedTable = document.getElementById('expectedDeliveriesTable');
+                const receivedTable = document.getElementById('receivedDeliveriesTable');
+                
+                document.getElementById('expectedEmptyState').style.display = 
+                    expectedTable.children.length === 0 ? 'block' : 'none';
+                
+                document.getElementById('receivedEmptyState').style.display = 
+                    receivedTable.children.length === 0 ? 'block' : 'none';
+            }
+
+            // Function to show receipt details
+            function showReceiptDetails(batchId, sampleDetails) {
+                const delivery = pendingDeliveries.find(d => d.batchId === batchId) || 
+                                initialReceivedDeliveries.find(d => d.batchId === batchId);
+                if (delivery) {
+                    // Populate modal with shipment details
+                    document.getElementById('modalBatchId').textContent = delivery.batchId;
+                    document.getElementById('modalTrackingNumber').textContent = delivery.trackingNumber;
+                    document.getElementById('modalOrigin').textContent = delivery.origin;
+                    document.getElementById('modalShipDate').textContent = delivery.shipDate;
+                    document.getElementById('modalExpectedSamples').textContent = delivery.expectedSamples;
+                    document.getElementById('modalStatus').textContent = determineShipmentStatus(sampleDetails.map(s => s.status));
+
+                    // Populate samples list with saved statuses and comments
+                    const samplesList = document.getElementById('samplesList');
+                    samplesList.innerHTML = delivery.samples.map((sample, index) => `
+                        <div class="sample-item">
+                            <div class="sample-header">
+                                <div class="sample-info">
+                                    <p><strong>Sample ID:</strong> ${sample.id}</p>
+                                    <p><strong>Type:</strong> ${getSampleTypeBadge(sample.type)}</p>
+                                    <p><strong>Patient Ref:</strong> ${sample.patientRef}</p>
+                                </div>
+                                <div class="sample-status">
+                                    <span class="badge ${sampleDetails[index].status === 'received' ? 'bg-received' : 
+                                                       sampleDetails[index].status === 'missing' ? 'bg-warning' : 
+                                                       'bg-danger'}">
+                                        ${sampleDetails[index].status.charAt(0).toUpperCase() + sampleDetails[index].status.slice(1)}
+                                    </span>
+                                </div>
+                            </div>
+                            ${sampleDetails[index].comments ? `
+                            <div class="comments-section">
+                                <p class="mb-0"><strong>Comments:</strong> ${sampleDetails[index].comments}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+
+                    // Hide confirmation section and buttons for view mode
+                    document.querySelector('.signature-section').style.display = 'none';
+                    
+                    receivingModal.show();
+                }
+            }
+
+            // Function to update KPIs
+            function updateKPIs(status) {
+                const receivedToday = document.getElementById('receivedToday');
+                const withDiscrepancies = document.getElementById('withDiscrepancies');
+                const completeReceipt = document.getElementById('completeReceipt');
+                const pendingReceipt = document.getElementById('pendingReceipt');
+
+                // Update counts based on status
+                if (status === 'Received Complete') {
+                    receivedToday.textContent = parseInt(receivedToday.textContent) + 1;
+                    completeReceipt.textContent = parseInt(completeReceipt.textContent) + 1;
+                } else if (status === 'Multiple Issues' || status === 'Missing Samples' || status === 'Damaged Samples') {
+                    withDiscrepancies.textContent = parseInt(withDiscrepancies.textContent) + 1;
+                    receivedToday.textContent = parseInt(receivedToday.textContent) + 1;
+                }
+
+                // Update pending receipt count
+                pendingReceipt.textContent = Math.max(0, parseInt(pendingReceipt.textContent) - 1);
+            }
+
+            // Handle modal close button
+            document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    receivingModal.hide();
+                });
+            });
+
+            // Initialize empty states
+            updateEmptyStates();
+
+            // Add this function at the start of your script section
+            function showSuccessToast(title, message) {
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast';
+                toast.innerHTML = `
+                    <div class="toast-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="toast-content">
+                        <h6 class="toast-title">${title}</h6>
+                        <p class="toast-message">${message}</p>
+                    </div>
+                    <button type="button" class="toast-close" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                toastContainer.appendChild(toast);
+                
+                // Trigger reflow to enable transition
+                toast.offsetHeight;
+                toast.classList.add('show');
+
+                // Add click handler for close button
+                const closeBtn = toast.querySelector('.toast-close');
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent event bubbling
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                });
+
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    if (toast && toast.parentElement) {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    }
+                }, 5000);
+            }
+
+            // Update the confirmation button click handler
+            document.getElementById('confirmReceiptBtn').addEventListener('click', function() {
+                // Get all sample statuses
+                const sampleSelects = document.querySelectorAll('#samplesList select');
+                const sampleComments = document.querySelectorAll('#samplesList textarea');
+                const sampleStatuses = [];
+                const sampleDetails = [];
+
+                sampleSelects.forEach((select, index) => {
+                    const status = select.value;
+                    const comments = sampleComments[index].value;
+                    if (status) {
+                        sampleStatuses.push(status);
+                        sampleDetails.push({
+                            status: status,
+                            comments: comments
+                        });
+                    }
+                });
+
+                // Check if all samples have been processed
+                if (sampleStatuses.length !== sampleSelects.length) {
+                    alert('Please select a status for all samples before confirming.');
+                    return;
+                }
+
+                // Determine overall shipment status
+                const overallStatus = determineShipmentStatus(sampleStatuses);
+
+                // Move the delivery to received table
+                const batchId = document.getElementById('modalBatchId').textContent;
+                const delivery = pendingDeliveries.find(d => d.batchId === batchId);
+                
+                if (delivery) {
+                    moveToReceived(delivery, overallStatus, sampleDetails);
+                    updateKPIs(overallStatus);
+                    receivingModal.hide();
+                    showSuccessToast(
+                        'Receipt Processed Successfully',
+                        `Batch ${delivery.batchId} has been received and processed.`
+                    );
+                }
+            });
+
+            // Update the sample type display function
+            function getSampleTypeBadge(type) {
+                const badges = {
+                    'Biopsy (Formalin-Fixed)': {
+                        icon: '🧪',
+                        class: 'sample-type-biopsy'
+                    },
+                    'Glass Slides': {
+                        icon: '🔬',
+                        class: 'sample-type-slides'
+                    },
+                    'Other': {
+                        icon: '🧫',
+                        class: 'sample-type-other'
+                    }
+                };
+
+                const badge = badges[type] || { icon: '🧫', class: 'sample-type-other' };
+                return `<span class="sample-type-badge ${badge.class}">${badge.icon} ${type}</span>`;
+            }
+
+            // Add the notifyClinic function
+            function notifyClinic(delivery) {
+                // Get the issue details
+                const issues = delivery.samples
+                    .filter(sample => sample.status === 'missing' || sample.status === 'damaged')
+                    .map(sample => `${sample.id} (${sample.status}: ${sample.comments || 'No comments'})`);
+
+                // Create notification message
+                const message = `
+                    Notification sent to ${delivery.origin}:
+                    Batch ID: ${delivery.batchId}
+                    Issues Found:
+                    ${issues.join('\n')}
+                `;
+
+                // Show success toast
+                showSuccessToast(
+                    'Notification Sent',
+                    `The clinic has been notified about the issues with batch ${delivery.batchId}`
+                );
+
+                // Log the notification (in a real application, this would send an actual notification)
+                console.log('Notification Details:', message);
+            }
+        });
+    </script>
+</body>
+</html> 

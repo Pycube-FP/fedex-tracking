@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FedEx Tracking - Batching</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <style>
+        .kpi-container {
+            width: 80%;
+            margin: 0 auto 30px auto;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 20px;
+        }
+        .kpi {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            color: #2c3e50;
+            position: relative;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .kpi span {
+            display: block;
+            font-size: 28px;
+            font-weight: 500;
+            margin-top: 6px;
+            color: #000000;
+        }
+        .kpi-content {
+            text-align: left;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0;
+            background-color: #fff;
+            height: 50px;
+        }
+        .section-header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+        .batch-creation-section {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        .batch-creation-section:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .batch-form {
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .card {
+            border: none;
+            box-shadow: none;
+        }
+        .card-body {
+            padding: 25px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .form-label {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-select {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 0.6rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #34495e;
+            box-shadow: 0 0 0 0.2rem rgba(52, 73, 94, 0.15);
+        }
+        .sample-list-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 25px;
+        }
+        .sample-list-section h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .sample-input-group {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .sample-input-group .form-label {
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .sample-input-group .input-group {
+            width: 100%;
+        }
+        .sample-input-group .input-group-text {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            border-color: #e0e0e0;
+            padding: 0.6rem 1rem;
+        }
+        .sample-input-group .form-control,
+        .sample-input-group .form-select {
+            border-color: #e0e0e0;
+            padding: 0.6rem 1rem;
+            min-width: 200px;
+            max-width: none;
+            width: auto;
+        }
+        .sample-input-group input[type="datetime-local"] {
+            min-width: 230px;
+        }
+        .sample-input-group input[type="number"] {
+            width: 100px;
+            text-align: center;
+        }
+        .sample-input-group .btn-outline-primary {
+            min-width: 120px;
+            margin-left: 10px;
+        }
+        .sample-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .sample-list table {
+            margin-bottom: 0;
+        }
+        .sample-list thead th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+            padding: 12px 15px;
+        }
+        .form-actions {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .form-actions .btn {
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+        }
+        #createBatchBtn {
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        #createBatchBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 73, 94, 0.2);
+        }
+        .table-container {
+            width: 100%;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        .table {
+            width: 100%;
+            margin-bottom: 0;
+            background-color: white;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table thead th {
+            background-color: #34495e;
+            color: white;
+            padding: 15px;
+            font-weight: 500;
+            text-align: center;
+            border: none;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        .table thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+        .table thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .btn-sm {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px 20px 12px 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            color: #2c3e50;
+        }
+        .search-input:focus {
+            border-color: #34495e;
+            box-shadow: 0 0 0 0.2rem rgba(52, 73, 94, 0.15);
+            outline: none;
+        }
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+            font-size: 1rem;
+        }
+        .sample-badge {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .btn-primary {
+            background-color: #34495e;
+            border-color: #34495e;
+        }
+        .btn-primary:hover {
+            background-color: #2c3e50;
+            border-color: #2c3e50;
+        }
+        .info-group {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: baseline;
+        }
+        .info-group label {
+            min-width: 140px;
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-right: 15px;
+            font-weight: 600;
+        }
+        .info-group span {
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+        .samples-info {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .samples-info h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 1rem;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .samples-info .table {
+            margin-bottom: 0;
+        }
+        .samples-info .table th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 12px 15px;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .samples-info .table td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+        .samples-info .sample-badge {
+            background-color: #e9ecef;
+            color: #2c3e50;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        #modalStatus .badge {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 15px;
+        }
+        .modal {
+            z-index: 1050;
+        }
+        .modal-backdrop {
+            z-index: 1040;
+        }
+        .modal-dialog {
+            max-width: 800px;
+            margin: 1.75rem auto;
+        }
+        .modal-content {
+            position: relative;
+            background-color: #fff;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+        }
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+        .modal-header .btn-close {
+            padding: 1rem;
+            margin: -1rem -1rem -1rem auto;
+        }
+        .modal-body {
+            position: relative;
+            padding: 1.5rem;
+        }
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            padding: 1rem;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .batch-info {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .samples-info {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .samples-info h6 {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        #modalStatus span {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        .btn-info {
+            background-color: #34495e;
+            border-color: #34495e;
+            color: #ffffff;
+        }
+        .btn-info:hover {
+            background-color: #2c3e50;
+            border-color: #2c3e50;
+            color: #ffffff;
+        }
+        .batch-list-section {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+        }
+        .batch-list-section h2 {
+            color: #2c3e50;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .sample-list table th {
+            background-color: #34495e;
+            color: white;
+            font-weight: 500;
+            text-align: center;
+            padding: 12px 15px;
+        }
+        .sample-list table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 12px 15px;
+        }
+        .sample-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            border: 1px solid #e9ecef;
+        }
+        .sample-type-biopsy {
+            background-color: #e8f5e9;
+            border-color: #c8e6c9;
+            color: #2e7d32;
+        }
+        .sample-type-slides {
+            background-color: #e3f2fd;
+            border-color: #bbdefb;
+            color: #1565c0;
+        }
+        .sample-type-other {
+            background-color: #f3e5f5;
+            border-color: #e1bee7;
+            color: #7b1fa2;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/static/pycube-logo.png" alt="Pycube">
+        </div>
+        <nav class="main-nav">
+            <a href="/batching" class="nav-link active">Batching</a>
+            <a href="/" class="nav-link">Shipments</a>
+            <a href="/receiving" class="nav-link">Receiving</a>
+            <a href="/analytics" class="nav-link">Analytics</a>
+        </nav>
+        <div class="user-info">
+            {% if 'username' in session %}
+            <div class="user-profile-dropdown">
+                <div class="user-profile-trigger">
+                    <img src="/static/profile.jpg" alt="Profile" class="profile-image">
+                    <div class="user-details">
+                        <div class="user-name">{{ session['username'] }}</div>
+                        <div class="user-role">Clinic Manager</div>
+                    </div>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        User Profile
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Log Out
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+            {% endif %}
+        </div>
+    </header>
+    <main>
+        <div class="container-wrapper">
+            <!-- KPI Section -->
+            <div class="kpi-container">
+                <div class="kpi batch-kpi">
+                    <div class="kpi-content">
+                        Total Batches<br><span id="totalBatches">0</span>
+                    </div>
+                </div>
+                <div class="kpi batch-kpi">
+                    <div class="kpi-content">
+                        Pending Batches<br><span id="pendingBatches">0</span>
+                    </div>
+                </div>
+                <div class="kpi batch-kpi">
+                    <div class="kpi-content">
+                        Shipped Batches<br><span id="shippedBatches">0</span>
+                    </div>
+                </div>
+                <div class="kpi batch-kpi">
+                    <div class="kpi-content">
+                        Total Samples<br><span id="totalSamples">0</span>
+                    </div>
+                </div>
+                <div class="kpi batch-kpi">
+                    <div class="kpi-content">
+                        Cancelled Batches<br><span id="cancelledBatches">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create New Batch Section -->
+            <div class="batch-creation-section">
+                <div class="section-header">
+                    <h2>Create New Batch</h2>
+                    <button class="btn btn-primary" id="createBatchBtn">
+                        <i class="fas fa-plus"></i> Create New Batch
+                    </button>
+                </div>
+                <div class="batch-form" style="display: none;">
+                    <div class="card">
+                        <div class="card-body">
+                            <form id="batchForm">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Batch ID</label>
+                                        <input type="text" class="form-control" id="batchId" readonly>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">FedEx Tracking Number</label>
+                                        <input type="text" class="form-control" id="trackingNumber" required 
+                                               pattern="\d{12}" title="Please enter a valid 12-digit FedEx tracking number">
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Origin Clinic</label>
+                                        <select class="form-select" id="originClinic" required>
+                                            <option value="" disabled selected>Select Clinic</option>
+                                            <option value="clinic1">Clinic 1</option>
+                                            <option value="clinic2">Clinic 2</option>
+                                            <option value="clinic3">Clinic 3</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Destination Lab</label>
+                                        <select class="form-select" id="destinationLab" required>
+                                            <option value="" disabled selected>Select Lab</option>
+                                            <option value="lab1">Lab 1</option>
+                                            <option value="lab2">Lab 2</option>
+                                            <option value="lab3">Lab 3</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Staff Initiating Shipment</label>
+                                        <input type="text" class="form-control" id="staffInitiator" readonly>
+                                    </div>
+                                </div>
+                                <div class="sample-list-section">
+                                    <h3>Samples in Batch</h3>
+                                    <div class="sample-input-group mb-3">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label">Sample Information</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="sampleId" 
+                                                           placeholder="Scan or enter sample ID">
+                                                    <select class="form-select" id="sampleType">
+                                                        <option value="" disabled selected>Sample Type</option>
+                                                        <option value="biopsy">Biopsy (Formalin-Fixed)</option>
+                                                        <option value="slides">Glass Slides</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Patient Information</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="patientRef" 
+                                                           placeholder="Patient Reference">
+                                                    <input type="text" class="form-control" id="mrn" 
+                                                           placeholder="MRN">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Collection Details</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">Collection Date</span>
+                                                    <input type="datetime-local" class="form-control" id="collectionDate">
+                                                    <button type="button" class="btn btn-primary" id="closeDatePicker" 
+                                                            style="background-color: #34495e; border: none;">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Container Information</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">No. of Containers</span>
+                                                    <input type="number" class="form-control" id="containerCount" 
+                                                           min="1" value="1">
+                                                    <button class="btn btn-outline-primary" type="button" id="addSample">
+                                                        <i class="fas fa-plus"></i> Add Sample
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="sample-list">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Sample ID</th>
+                                                    <th>Type</th>
+                                                    <th>Patient Ref</th>
+                                                    <th>MRN</th>
+                                                    <th>Collection Date</th>
+                                                    <th>Containers</th>
+                                                    <th>Added Time</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="sampleTableBody">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="form-actions mt-3">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Batch
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="cancelBatch">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch List Section -->
+            <div class="batch-list-section">
+                <div class="section-header">
+                    <h2>Recent Batches</h2>
+                    <div class="search-container">
+                        <div class="search-box">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="search-input" id="batchSearch" 
+                                   placeholder="Search batches...">
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Batch ID</th>
+                                <th>Tracking Number</th>
+                                <th>Origin</th>
+                                <th>Destination</th>
+                                <th>Samples</th>
+                                <th>Created Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="batchTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Batch Details Modal -->
+    <div class="modal fade" id="batchDetailsModal" tabindex="-1" aria-labelledby="batchDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="batchDetailsModalLabel">Batch Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="batch-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <label>Batch ID</label>
+                                    <span id="modalBatchId"></span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Staff Initiator</label>
+                                    <span id="modalStaffInitiator"></span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Tracking Number</label>
+                                    <span id="modalTrackingNumber"></span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Created Date</label>
+                                    <span id="modalCreatedDate"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <label>Origin</label>
+                                    <span id="modalOrigin"></span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Destination</label>
+                                    <span id="modalDestination"></span>
+                                </div>
+                                <div class="info-group">
+                                    <label>Status</label>
+                                    <span id="modalStatus"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="samples-info">
+                        <h6>Samples in Batch</h6>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Sample ID</th>
+                                        <th>Type</th>
+                                        <th>Patient Ref</th>
+                                        <th>MRN</th>
+                                        <th>Collection Date</th>
+                                        <th>Containers</th>
+                                        <th>Added Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modalSamplesTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data initialization
+        const initialBatches = [
+            {
+                id: 'B123456001',
+                trackingNumber: '123456789012',
+                origin: 'Clinic 1',
+                destination: 'Lab 1',
+                samples: [
+                    { id: 'S001', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12345', addedTime: '2024-01-24 09:00 AM' },
+                    { id: 'S002', type: 'Glass Slides', patientRef: 'P12346', addedTime: '2024-01-24 09:00 AM' },
+                    { id: 'S003', type: 'Other', patientRef: 'P12347', addedTime: '2024-01-24 09:00 AM' }
+                ],
+                createdDate: '2024-01-24 09:00 AM',
+                status: 'Shipped'
+            },
+            {
+                id: 'B123456002',
+                trackingNumber: '234567890123',
+                origin: 'Clinic 2',
+                destination: 'Lab 2',
+                samples: [
+                    { id: 'S004', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12348', addedTime: '2024-01-24 10:30 AM' },
+                    { id: 'S005', type: 'Glass Slides', patientRef: 'P12349', addedTime: '2024-01-24 10:30 AM' }
+                ],
+                createdDate: '2024-01-24 10:30 AM',
+                status: 'Shipped'
+            },
+            {
+                id: 'B123456003',
+                trackingNumber: '345678901234',
+                origin: 'Clinic 3',
+                destination: 'Lab 1',
+                samples: [
+                    { id: 'S006', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12350', addedTime: '2024-01-24 11:45 AM' },
+                    { id: 'S007', type: 'Glass Slides', patientRef: 'P12351', addedTime: '2024-01-24 11:45 AM' },
+                    { id: 'S008', type: 'Other', patientRef: 'P12352', addedTime: '2024-01-24 11:45 AM' },
+                    { id: 'S009', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12353', addedTime: '2024-01-24 11:45 AM' }
+                ],
+                createdDate: '2024-01-24 11:45 AM',
+                status: 'Shipped'
+            },
+            {
+                id: 'B123456004',
+                trackingNumber: '456789012345',
+                origin: 'Clinic 1',
+                destination: 'Lab 3',
+                samples: [
+                    { id: 'S010', type: 'Glass Slides', patientRef: 'P12354', addedTime: '2024-01-24 13:15 PM' }
+                ],
+                createdDate: '2024-01-24 13:15 PM',
+                status: 'Shipped'
+            },
+            {
+                id: 'B123456005',
+                trackingNumber: '567890123456',
+                origin: 'Clinic 2',
+                destination: 'Lab 2',
+                samples: [
+                    { id: 'S011', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12355', addedTime: '2024-01-24 14:30 PM' },
+                    { id: 'S012', type: 'Glass Slides', patientRef: 'P12356', addedTime: '2024-01-24 14:30 PM' },
+                    { id: 'S013', type: 'Other', patientRef: 'P12357', addedTime: '2024-01-24 14:30 PM' }
+                ],
+                createdDate: '2024-01-24 14:30 PM',
+                status: 'Shipped'
+            }
+        ];
+
+        // User profile dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileTrigger = document.querySelector('.user-profile-trigger');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+            
+            // Initialize batches with sample data
+            let batches = [...initialBatches];
+            let samples = [];
+
+            // Update KPIs and batch table with initial data
+            updateBatchTable();
+            updateKPIs();
+            
+            profileTrigger?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', function() {
+                dropdownMenu?.classList.remove('show');
+            });
+
+            // Initialize batch ID
+            document.getElementById('batchId').value = generateBatchId();
+
+            // Auto-populate staff initiator from session
+            const username = '{{ session.username }}' || 'Unknown User';
+            document.getElementById('staffInitiator').value = username;
+
+            // Sample management
+            const addSampleBtn = document.getElementById('addSample');
+            const sampleIdInput = document.getElementById('sampleId');
+            const sampleTypeSelect = document.getElementById('sampleType');
+            const sampleTableBody = document.getElementById('sampleTableBody');
+
+            addSampleBtn.addEventListener('click', function() {
+                const sampleId = sampleIdInput.value.trim();
+                const sampleTypeSelect = document.getElementById('sampleType');
+                const selectedType = sampleTypeSelect.value;
+                
+                // Map the selected value to the full type name
+                const typeMapping = {
+                    'biopsy': 'Biopsy (Formalin-Fixed)',
+                    'slides': 'Glass Slides',
+                    'other': 'Other'
+                };
+                
+                const sampleType = typeMapping[selectedType] || selectedType;
+                const patientRef = document.getElementById('patientRef').value.trim();
+                const mrn = document.getElementById('mrn').value.trim();
+                const collectionDate = document.getElementById('collectionDate').value;
+                const containerCount = document.getElementById('containerCount').value;
+                
+                if (!sampleId) {
+                    alert('Please enter a sample ID');
+                    return;
+                }
+
+                if (samples.some(s => s.id === sampleId)) {
+                    alert('This sample ID already exists in the batch');
+                    return;
+                }
+
+                const sample = {
+                    id: sampleId,
+                    type: sampleType,
+                    patientRef: patientRef,
+                    mrn: mrn,
+                    collectionDate: collectionDate,
+                    containerCount: containerCount,
+                    addedTime: new Date().toLocaleString()
+                };
+
+                samples.push(sample);
+                updateSampleTable();
+                // Clear input fields
+                sampleIdInput.value = '';
+                sampleTypeSelect.value = '';
+                document.getElementById('patientRef').value = '';
+                document.getElementById('mrn').value = '';
+                document.getElementById('collectionDate').value = '';
+                document.getElementById('containerCount').value = '1';
+                updateTotalSamples();
+            });
+
+            function getSampleTypeBadge(type) {
+                const badges = {
+                    'Biopsy (Formalin-Fixed)': {
+                        icon: '🧪',
+                        class: 'sample-type-biopsy'
+                    },
+                    'Glass Slides': {
+                        icon: '🔬',
+                        class: 'sample-type-slides'
+                    },
+                    'Other': {
+                        icon: '🧫',
+                        class: 'sample-type-other'
+                    }
+                };
+
+                const badge = badges[type] || { icon: '🧫', class: 'sample-type-other' };
+                return `<span class="sample-type-badge ${badge.class}">${badge.icon} ${type}</span>`;
+            }
+
+            function updateSampleTable() {
+                sampleTableBody.innerHTML = samples.map(sample => `
+                    <tr>
+                        <td>${sample.id}</td>
+                        <td>${getSampleTypeBadge(sample.type)}</td>
+                        <td>${sample.patientRef || '-'}</td>
+                        <td>${sample.mrn || '-'}</td>
+                        <td>${formatDate(sample.collectionDate)}</td>
+                        <td>${sample.containerCount}</td>
+                        <td>${sample.addedTime}</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="removeSample('${sample.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            // Helper function to format date
+            function formatDate(dateString) {
+                if (!dateString) return '-';
+                const date = new Date(dateString);
+                return date.toLocaleString();
+            }
+
+            // Make removeSample function global
+            window.removeSample = function(sampleId) {
+                samples = samples.filter(s => s.id !== sampleId);
+                updateSampleTable();
+                updateTotalSamples();
+            };
+
+            // Batch form submission
+            const batchForm = document.getElementById('batchForm');
+
+            batchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (samples.length === 0) {
+                    alert('Please add at least one sample to the batch');
+                    return;
+                }
+
+                const newBatch = {
+                    id: document.getElementById('batchId').value,
+                    staffInitiator: document.getElementById('staffInitiator').value,
+                    trackingNumber: document.getElementById('trackingNumber').value,
+                    origin: document.getElementById('originClinic').value,
+                    destination: document.getElementById('destinationLab').value,
+                    samples: [...samples],
+                    createdDate: new Date().toLocaleString(),
+                    status: 'Pending'
+                };
+
+                batches.push(newBatch);
+                updateBatchTable();
+                updateKPIs();
+                resetForm();
+            });
+
+            function updateBatchTable() {
+                const batchTableBody = document.getElementById('batchTableBody');
+                batchTableBody.innerHTML = batches.map(batch => `
+                    <tr>
+                        <td>${batch.id}</td>
+                        <td>${batch.trackingNumber}</td>
+                        <td>${batch.origin}</td>
+                        <td>${batch.destination}</td>
+                        <td>${batch.samples.length}</td>
+                        <td>${batch.createdDate}</td>
+                        <td><span class="badge bg-${getStatusColor(batch.status)}">${batch.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="viewBatch('${batch.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${batch.status === 'Pending' ? `
+                            <button class="btn btn-sm btn-success" onclick="shipBatch('${batch.id}')">
+                                <i class="fas fa-shipping-fast"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="cancelBatch('${batch.id}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+            function getStatusColor(status) {
+                switch(status) {
+                    case 'Pending': return 'warning';
+                    case 'Shipped': return 'success';
+                    case 'Cancelled': return 'danger';
+                    default: return 'secondary';
+                }
+            }
+
+            window.viewBatch = function(batchId) {
+                const batch = batches.find(b => b.id === batchId);
+                if (batch) {
+                    document.getElementById('modalBatchId').textContent = batch.id;
+                    document.getElementById('modalStaffInitiator').textContent = batch.staffInitiator;
+                    document.getElementById('modalTrackingNumber').textContent = batch.trackingNumber;
+                    document.getElementById('modalCreatedDate').textContent = batch.createdDate;
+                    document.getElementById('modalOrigin').textContent = batch.origin;
+                    document.getElementById('modalDestination').textContent = batch.destination;
+                    
+                    // Update status badge to match table styling with white text
+                    const statusColor = getStatusColor(batch.status);
+                    document.getElementById('modalStatus').innerHTML = 
+                        `<span class="badge bg-${statusColor}" style="font-size: 0.85rem; padding: 6px 12px; border-radius: 20px; font-weight: 500; letter-spacing: 0.3px; color: #ffffff;">${batch.status}</span>`;
+
+                    // Update samples table with badges
+                    const samplesHtml = batch.samples.map(sample => `
+                        <tr>
+                            <td>${sample.id}</td>
+                            <td>${getSampleTypeBadge(sample.type)}</td>
+                            <td>${sample.patientRef || '-'}</td>
+                            <td>${sample.mrn || '-'}</td>
+                            <td>${formatDate(sample.collectionDate)}</td>
+                            <td>${sample.containerCount}</td>
+                            <td>${sample.addedTime}</td>
+                        </tr>
+                    `).join('');
+                    document.getElementById('modalSamplesTable').innerHTML = samplesHtml;
+
+                    const modal = new bootstrap.Modal(document.getElementById('batchDetailsModal'));
+                    modal.show();
+                }
+            };
+
+            window.shipBatch = function(batchId) {
+                const batch = batches.find(b => b.id === batchId);
+                if (batch) {
+                    batch.status = 'Shipped';
+                    updateBatchTable();
+                    updateKPIs();
+                }
+            };
+
+            window.cancelBatch = function(batchId) {
+                const batch = batches.find(b => b.id === batchId);
+                if (batch) {
+                    batch.status = 'Cancelled';
+                    updateBatchTable();
+                    updateKPIs();
+                }
+            };
+
+            function resetForm() {
+                samples = [];
+                updateSampleTable();
+                batchForm.reset();
+                document.getElementById('batchId').value = generateBatchId();
+                document.querySelector('.batch-form').style.display = 'none';
+                document.getElementById('createBatchBtn').style.display = 'block';
+            }
+
+            function updateKPIs() {
+                document.getElementById('totalBatches').textContent = batches.length;
+                document.getElementById('pendingBatches').textContent = 
+                    batches.filter(b => b.status === 'Pending').length;
+                document.getElementById('shippedBatches').textContent = 
+                    batches.filter(b => b.status === 'Shipped').length;
+                document.getElementById('cancelledBatches').textContent = 
+                    batches.filter(b => b.status === 'Cancelled').length;
+                updateTotalSamples();
+            }
+
+            function updateTotalSamples() {
+                const totalSamples = batches.reduce((total, batch) => 
+                    total + batch.samples.length, 0) + samples.length;
+                document.getElementById('totalSamples').textContent = totalSamples;
+            }
+
+            // Batch creation form toggle
+            document.getElementById('createBatchBtn').addEventListener('click', function() {
+                document.querySelector('.batch-form').style.display = 'block';
+                this.style.display = 'none';
+            });
+
+            document.getElementById('cancelBatch').addEventListener('click', function() {
+                resetForm();
+            });
+
+            // Search functionality
+            document.getElementById('batchSearch').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredBatches = batches.filter(batch => 
+                    batch.id.toLowerCase().includes(searchTerm) ||
+                    batch.trackingNumber.toLowerCase().includes(searchTerm) ||
+                    batch.origin.toLowerCase().includes(searchTerm) ||
+                    batch.destination.toLowerCase().includes(searchTerm)
+                );
+                
+                const batchTableBody = document.getElementById('batchTableBody');
+                batchTableBody.innerHTML = filteredBatches.map(batch => `
+                    <tr>
+                        <td>${batch.id}</td>
+                        <td>${batch.trackingNumber}</td>
+                        <td>${batch.origin}</td>
+                        <td>${batch.destination}</td>
+                        <td>${batch.samples.length}</td>
+                        <td>${batch.createdDate}</td>
+                        <td><span class="badge bg-${getStatusColor(batch.status)}">${batch.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-info" onclick="viewBatch('${batch.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${batch.status === 'Pending' ? `
+                            <button class="btn btn-sm btn-success" onclick="shipBatch('${batch.id}')">
+                                <i class="fas fa-shipping-fast"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="cancelBatch('${batch.id}')">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            });
+
+            // Initialize flatpickr date picker
+            flatpickr("#collectionDate", {
+                enableTime: true,
+                dateFormat: "m/d/Y h:i K",
+                time_24hr: false,
+                minuteIncrement: 1,
+                allowInput: true,
+                clickOpens: true,
+                closeOnSelect: false,
+                static: true,
+                appendTo: document.getElementById('collectionDatePicker'),
+                plugins: [{
+                    onOpen: function(selectedDates, dateStr, instance) {
+                        // Create buttons container if it doesn't exist
+                        if (!instance.calendarContainer.querySelector('.flatpickr-buttons')) {
+                            const buttonContainer = document.createElement('div');
+                            buttonContainer.className = 'flatpickr-buttons';
+                            buttonContainer.style.cssText = 'display: flex; justify-content: flex-end; padding: 10px; border-top: 1px solid #e9ecef;';
+                            
+                            const closeButton = document.createElement('button');
+                            closeButton.textContent = 'Close';
+                            closeButton.className = 'btn btn-primary btn-sm';
+                            closeButton.style.cssText = 'background-color: #34495e; border: none; padding: 5px 15px; border-radius: 4px; color: white; cursor: pointer;';
+                            closeButton.onclick = function() {
+                                instance.close();
+                            };
+                            
+                            buttonContainer.appendChild(closeButton);
+                            instance.calendarContainer.appendChild(buttonContainer);
+                        }
+                    }
+                }]
+            });
+
+            // Add close button functionality
+            document.getElementById('closeDatePicker').addEventListener('click', function() {
+                document.getElementById('collectionDate').blur();
+            });
+        });
+
+        // Helper function to generate batch ID
+        function generateBatchId() {
+            const timestamp = new Date().getTime().toString().slice(-6);
+            const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+            return `B${timestamp}${random}`;
+        }
+    </script>
+</body>
+</html> 
