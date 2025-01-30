@@ -1,396 +1,43 @@
 [
-  {
-    "alertId": "ALT5398",
-    "type": "Missing Samples",
-    "batchId": "B394394913",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:41:52.538Z",
-    "status": "Completed",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "missing",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "missing",
-        "comments": "No comments"
+    {
+        "alertId": "ALT0473",
+        "type": "Missing Samples",
+        "batchId": "B394394913",
+        "trackingNumber": "774722097751",
+        "clinic": "clinic1",
+        "lab": "Lab A",
+        "description": "Issues found during lab verification:",
+        "date": "2025-01-30T21:42:47.462Z",
+        "status": "Action Required",
+        "samples": [
+          {
+            "id": "S001",
+            "type": "Biopsy (Formalin-Fixed)",
+            "status": "missing",
+            "comments": "No comments"
+          },
+          {
+            "id": "S002",
+            "type": "Glass Slides",
+            "status": "missing",
+            "comments": "No comments"
+          }
+        ],
+        "issues": [
+          {
+            "sampleId": "S001",
+            "issue": "missing: No comments"
+          },
+          {
+            "sampleId": "S002",
+            "issue": "missing: No comments"
+          }
+        ],
+        "meta": {
+          "clinic": "clinic1",
+          "lab": "Lab A",
+          "trackingNumber": "774722097751",
+          "batchId": "B394394913"
+        }
       }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "missing: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "missing: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394913"
-    },
-    "actionType": "shipment_expedited",
-    "actionDetails": "",
-    "resolutionDate": "",
-    "labMessage": "",
-    "completedDate": "2025-01-30T21:42:09.771Z"
-  },
-  {
-    "alertId": "ALT0540",
-    "type": "Missing Samples",
-    "batchId": "B394394913",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:42:00.891Z",
-    "status": "Completed",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "missing",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "missing",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "missing: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "missing: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394913"
-    },
-    "actionType": "container_replaced",
-    "actionDetails": "",
-    "resolutionDate": "",
-    "labMessage": "",
-    "completedDate": "2025-01-30T21:45:00.806Z"
-  },
-  {
-    "alertId": "ALT4429",
-    "type": "Missing Samples",
-    "batchId": "B394394913",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:42:01.932Z",
-    "status": "Completed",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "missing",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "missing",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "missing: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "missing: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394913"
-    },
-    "actionType": "shipment_expedited",
-    "actionDetails": "",
-    "resolutionDate": "",
-    "labMessage": "",
-    "completedDate": "2025-01-30T21:47:20.958Z"
-  },
-  {
-    "alertId": "ALT0473",
-    "type": "Missing Samples",
-    "batchId": "B394394913",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:42:47.462Z",
-    "status": "Action Required",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "missing",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "missing",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "missing: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "missing: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394913"
-    }
-  },
-  {
-    "alertId": "ALT9780",
-    "type": "Damaged Samples",
-    "batchId": "B394394913",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:45:51.799Z",
-    "status": "Action Required",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "damaged",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "damaged",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "damaged: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "damaged: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394913"
-    }
-  },
-  {
-    "alertId": "ALT2539",
-    "type": "Damaged Samples",
-    "batchId": "B394394913",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:46:05.369Z",
-    "status": "Action Required",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "damaged",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "damaged",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "damaged: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "damaged: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394913"
-    }
-  },
-  {
-    "alertId": "ALT0674",
-    "type": "Missing Samples",
-    "batchId": "B394394914",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:47:01.925Z",
-    "status": "Completed",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "missing",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "missing",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "missing: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "missing: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394914"
-    },
-    "actionType": "container_replaced",
-    "actionDetails": "",
-    "resolutionDate": "",
-    "labMessage": "",
-    "completedDate": "2025-01-30T21:49:24.181Z"
-  },
-  {
-    "alertId": "ALT7344",
-    "type": "Damaged Samples",
-    "batchId": "B394394913",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:53:03.296Z",
-    "status": "Completed",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "damaged",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "damaged",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "damaged: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "damaged: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394913"
-    },
-    "actionType": "container_replaced",
-    "actionDetails": "",
-    "resolutionDate": "",
-    "labMessage": "",
-    "completedDate": "2025-01-30T21:53:19.785Z"
-  },
-  {
-    "alertId": "ALT9452",
-    "type": "Damaged Samples",
-    "batchId": "B394394913",
-    "trackingNumber": "774722097751",
-    "clinic": "clinic1",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-01-30T21:57:05.926Z",
-    "status": "Action Required",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "damaged",
-        "comments": "No comments"
-      },
-      {
-        "id": "S002",
-        "type": "Glass Slides",
-        "status": "damaged",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "damaged: No comments"
-      },
-      {
-        "sampleId": "S002",
-        "issue": "damaged: No comments"
-      }
-    ],
-    "meta": {
-      "clinic": "clinic1",
-      "lab": "Lab A",
-      "trackingNumber": "774722097751",
-      "batchId": "B394394913"
-    }
-  }
 ]

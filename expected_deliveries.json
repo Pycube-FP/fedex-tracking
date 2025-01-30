@@ -1,1 +1,25 @@
-[]
+[
+    {
+        "batchId": "B713709071",
+        "createdAt": "1/30/2025, 3:42:14 PM",
+        "destination": "lab3",
+        "expectedDeliveryDate": "2025-01-31T20:42:15.913Z",
+        "expectedSamples": 1,
+        "origin": "clinic1",
+        "samples": [
+            {
+                "id": "Samp1",
+                "patientRef": "-",
+                "mrn": "-",
+                "collectionDate": "-",
+                "containerCount": "1",
+                "status": "missing",
+                "comments": ""
+            }
+        ],
+        "shippedAt": "2025-01-30T15:42:15.904470",
+        "status": "Missing Samples",
+        "trackingNumber": "774722097751",
+        "receivedAt": "2025-01-30T20:42:36.492Z"
+    }
+]
