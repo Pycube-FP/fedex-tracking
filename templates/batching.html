@@ -482,6 +482,7 @@
             <a href="/" class="nav-link">Shipments</a>
             <a href="/receiving" class="nav-link">Receiving</a>
             <a href="/analytics" class="nav-link">Analytics</a>
+            <a href="/alerts" class="nav-link">Alerts</a>
         </nav>
         <div class="user-info">
             {% if 'username' in session %}
@@ -779,6 +780,27 @@
         </div>
     </div>
 
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Operation successful!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Operation failed!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Sample data initialization
         const initialBatches = [
@@ -851,27 +873,27 @@
         document.addEventListener('DOMContentLoaded', function() {
             const profileTrigger = document.querySelector('.user-profile-trigger');
             const dropdownMenu = document.querySelector('.dropdown-menu');
-            
+                    
             // Initialize batches with sample data
             let batches = [...initialBatches];
             let samples = [];
-
+                    
             // Update KPIs and batch table with initial data
-            updateBatchTable();
-            updateKPIs();
-            
+                    updateBatchTable();
+                    updateKPIs();
+
             profileTrigger?.addEventListener('click', function(e) {
                 e.stopPropagation();
                 dropdownMenu.classList.toggle('show');
-            });
-            
+                    });
+                    
             document.addEventListener('click', function() {
                 dropdownMenu?.classList.remove('show');
-            });
-
+                    });
+                    
             // Initialize batch ID
             document.getElementById('batchId').value = generateBatchId();
-
+                    
             // Auto-populate staff initiator from session
             const username = '{{ session.username }}' || 'Unknown User';
             document.getElementById('staffInitiator').value = username;
@@ -1029,7 +1051,7 @@
                                 <i class="fas fa-eye"></i>
                             </button>
                             ${batch.status === 'Pending' ? `
-                            <button class="btn btn-sm btn-success" onclick="shipBatch('${batch.id}')">
+                            <button class="btn btn-sm btn-primary" onclick="shipBatch('${batch.id}')" ${batch.status === 'Shipped' ? 'disabled' : ''}>
                                 <i class="fas fa-shipping-fast"></i>
                             </button>
                             <button class="btn btn-sm btn-danger" onclick="cancelBatch('${batch.id}')">
@@ -1084,12 +1106,69 @@
                 }
             };
 
-            window.shipBatch = function(batchId) {
-                const batch = batches.find(b => b.id === batchId);
-                if (batch) {
+            window.shipBatch = async function(batchId) {
+                try {
+                    // Find the batch from our batches array instead of DOM
+                    const batch = batches.find(b => b.id === batchId);
+                    if (!batch) {
+                        throw new Error('Batch not found');
+                    }
+
+                    // Format the data to match receiving page expectations
+                    const batchData = {
+                        batchId: batch.id,
+                        trackingNumber: batch.trackingNumber,
+                        origin: batch.origin,
+                        destination: batch.destination,
+                        expectedSamples: batch.samples.length,
+                        samples: batch.samples.map(sample => ({
+                            id: sample.id,
+                            type: sample.type,
+                            patientRef: sample.patientRef || '-',
+                            mrn: sample.mrn || '-',
+                            collectionDate: sample.collectionDate || new Date().toISOString().split('T')[0],
+                            containerCount: sample.containerCount || '1',
+                            addedTime: sample.addedTime || new Date().toLocaleString(),
+                            status: 'pending'
+                        })),
+                        createdAt: batch.createdDate || new Date().toLocaleString(),
+                        status: 'In Transit',
+                        expectedDeliveryDate: new Date(Date.now() + 24*60*60*1000).toISOString(),
+                        shippedAt: new Date().toISOString()
+                    };
+
+                    const response = await fetch(`/api/batches/${batchId}/ship`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(batchData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to ship batch');
+                    }
+
+                    // Update local batch status
                     batch.status = 'Shipped';
+                    
+                    // Update the UI
                     updateBatchTable();
                     updateKPIs();
+
+                    // Show success toast
+                    const toast = new bootstrap.Toast(document.getElementById('successToast'));
+                    document.querySelector('#successToast .toast-body').innerHTML = 
+                        '<i class="fas fa-check-circle me-2"></i>Batch shipped successfully!';
+                    toast.show();
+
+                } catch (error) {
+                    console.error('Error shipping batch:', error);
+                    // Show error toast
+                    const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                    document.querySelector('#errorToast .toast-body').innerHTML = 
+                        '<i class="fas fa-exclamation-circle me-2"></i>Failed to ship batch';
+                    toast.show();
                 }
             };
 
@@ -1163,7 +1242,7 @@
                                 <i class="fas fa-eye"></i>
                             </button>
                             ${batch.status === 'Pending' ? `
-                            <button class="btn btn-sm btn-success" onclick="shipBatch('${batch.id}')">
+                            <button class="btn btn-sm btn-primary" onclick="shipBatch('${batch.id}')" ${batch.status === 'Shipped' ? 'disabled' : ''}>
                                 <i class="fas fa-shipping-fast"></i>
                             </button>
                             <button class="btn btn-sm btn-danger" onclick="cancelBatch('${batch.id}')">

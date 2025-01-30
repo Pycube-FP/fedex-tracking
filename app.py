@@ -6,6 +6,8 @@ from datetime import datetime
 from functools import wraps
 import os
 from dotenv import load_dotenv
+import json
+
 load_dotenv()  # Load environment variables from .env file
 
 app = Flask('FedEx Tracking')
@@ -31,6 +33,9 @@ USERS = {
     'admin': 'admin123',
     'user': 'user123'
 }
+
+# File to store alerts
+ALERTS_FILE = 'alerts.json'
 
 def login_required(f):
     @wraps(f)
@@ -547,6 +552,197 @@ def batching():
 @login_required
 def receiving():
     return render_template('receiving.html')
+
+@app.route('/alerts')
+@login_required
+def alerts():
+    return render_template('alerts.html')
+
+def load_alerts():
+    try:
+        if not os.path.exists(ALERTS_FILE):
+            # Create file with empty array if it doesn't exist
+            save_alerts([])
+            return []
+        
+        with open(ALERTS_FILE, 'r') as f:
+            content = f.read().strip()
+            if not content:  # If file is empty
+                return []
+            return json.loads(content)
+    except json.JSONDecodeError:
+        # If file is corrupted, reset it
+        save_alerts([])
+        return []
+    except Exception as e:
+        app.logger.error(f"Error loading alerts: {e}")
+        return []
+
+def save_alerts(alerts):
+    try:
+        with open(ALERTS_FILE, 'w') as f:
+            json.dump(alerts, f, indent=2)
+    except Exception as e:
+        app.logger.error(f"Error saving alerts: {e}")
+        raise
+
+@app.route('/api/alerts', methods=['GET'])
+def get_alerts():
+    alerts = load_alerts()
+    return jsonify(alerts)
+
+@app.route('/api/alerts', methods=['POST'])
+def create_alert():
+    alert_data = request.json
+    # Ensure status is set to "Action Required" for new alerts
+    alert_data['status'] = 'Action Required'
+    alerts = load_alerts()
+    alerts.append(alert_data)
+    save_alerts(alerts)
+    return jsonify({"message": "Alert created successfully", "alert": alert_data}), 201
+
+@app.route('/api/alerts/clear', methods=['POST'])
+def clear_alerts():
+    save_alerts([])
+    return jsonify({"message": "Alerts cleared successfully"})
+
+@app.route('/api/alerts/<alert_id>', methods=['PUT'])
+def update_alert(alert_id):
+    try:
+        data = request.json
+        alerts = load_alerts()
+        
+        # Find and update the alert
+        for alert in alerts:
+            if alert['alertId'] == alert_id:
+                alert.update(data)
+                break
+        
+        save_alerts(alerts)
+        return jsonify({"message": "Alert updated successfully"}), 200
+    except Exception as e:
+        app.logger.error(f"Error updating alert: {e}")
+        return jsonify({"error": "Failed to update alert"}), 500
+
+@app.route('/api/batches/<batch_id>/ship', methods=['POST'])
+@login_required
+def ship_batch(batch_id):
+    try:
+        # Get the batch data from request
+        batch_data = request.json
+        
+        # Update batch status to shipped
+        batch_data['status'] = 'Shipped'
+        batch_data['shippedAt'] = datetime.now().isoformat()
+        
+        # Add to expected deliveries
+        expected_deliveries = []
+        if os.path.exists('expected_deliveries.json'):
+            with open('expected_deliveries.json', 'r') as f:
+                expected_deliveries = json.load(f)
+        
+        expected_deliveries.append(batch_data)
+        
+        # Save updated expected deliveries
+        with open('expected_deliveries.json', 'w') as f:
+            json.dump(expected_deliveries, f)
+        
+        return jsonify({'message': 'Batch shipped successfully'}), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error shipping batch: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/receiving/expected', methods=['GET'])
+@login_required
+def get_expected_deliveries():
+    try:
+        if not os.path.exists('expected_deliveries.json'):
+            return jsonify([])
+            
+        with open('expected_deliveries.json', 'r') as f:
+            deliveries = json.load(f)
+        return jsonify(deliveries), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error getting expected deliveries: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/receiving/receive', methods=['POST'])
+@login_required
+def receive_batch():
+    try:
+        # Get the delivery data from request
+        delivery_data = request.json
+        
+        # Load existing received deliveries
+        received_deliveries = []
+        if os.path.exists('received_deliveries.json'):
+            with open('received_deliveries.json', 'r') as f:
+                received_deliveries = json.load(f)
+        
+        # Add new delivery to received deliveries
+        received_deliveries.append(delivery_data)
+        
+        # Save updated received deliveries
+        with open('received_deliveries.json', 'w') as f:
+            json.dump(received_deliveries, f)
+        
+        # Remove from expected deliveries
+        if os.path.exists('expected_deliveries.json'):
+            with open('expected_deliveries.json', 'r') as f:
+                expected_deliveries = json.load(f)
+            
+            # Filter out the received batch
+            expected_deliveries = [d for d in expected_deliveries if d['batchId'] != delivery_data['batchId']]
+            
+            with open('expected_deliveries.json', 'w') as f:
+                json.dump(expected_deliveries, f)
+        
+        return jsonify({'message': 'Batch received successfully'}), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error receiving batch: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/receiving/received', methods=['GET'])
+@login_required
+def get_received_deliveries():
+    try:
+        if not os.path.exists('received_deliveries.json'):
+            return jsonify([])
+            
+        with open('received_deliveries.json', 'r') as f:
+            deliveries = json.load(f)
+        return jsonify(deliveries), 200
+        
+    except Exception as e:
+        app.logger.error(f"Error getting received deliveries: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/receiving/notify', methods=['POST'])
+def update_notification_status():
+    try:
+        data = request.json
+        batch_id = data.get('batchId')
+        
+        # Read the current received deliveries
+        with open('received_deliveries.json', 'r') as f:
+            received_deliveries = json.load(f)
+        
+        # Update the notification status for the specified batch
+        for delivery in received_deliveries:
+            if delivery['batchId'] == batch_id:
+                delivery['notified'] = True
+                break
+        
+        # Write back to the file
+        with open('received_deliveries.json', 'w') as f:
+            json.dump(received_deliveries, f, indent=4)
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     # Enable debug mode for hot reloading and detailed error messages

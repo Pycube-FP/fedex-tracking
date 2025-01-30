@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FedEx Tracking - Alerts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .kpi-container {
+            width: 80%;
+            margin: 0 auto 30px auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .kpi {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: left;
+            color: #2c3e50;
+            position: relative;
+            font-size: 13px;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .kpi span {
+            display: block;
+            font-size: 28px;
+            font-weight: 500;
+            margin-top: 6px;
+            color: #000000;
+        }
+        .kpi-content {
+            text-align: left;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0;
+            background-color: #fff;
+            height: 50px;
+        }
+        .section-header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+        .alerts-container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        .alerts-container:hover {
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .table-container {
+            width: 100%;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background-color: white;
+        }
+        .table {
+            width: 100%;
+            margin-bottom: 0;
+            background-color: white;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table thead th {
+            background-color: #34495e;
+            color: white;
+            padding: 15px;
+            font-weight: 500;
+            text-align: center;
+            border: none;
+            white-space: nowrap;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        .table thead th:first-child {
+            border-top-left-radius: 12px;
+        }
+        .table thead th:last-child {
+            border-top-right-radius: 12px;
+        }
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: background-color 0.2s ease;
+        }
+        .badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .btn-sm {
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+        }
+        .badge.bg-critical {
+            background-color: #e74c3c !important;
+        }
+        .badge.bg-warning {
+            background-color: #f1c40f !important;
+            color: #2c3e50;
+        }
+        .badge.bg-info {
+            background-color: #3498db !important;
+        }
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .alert-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 4px solid #e74c3c;
+            display: flex;
+            flex-direction: column;
+            min-height: 120px;
+            position: relative;
+            font-size: 0.85rem;
+        }
+        .alert-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Status-based border colors */
+        .alert-card.in-progress {
+            border-left-color: #f59e0b; /* Yellow for In Progress */
+        }
+        .alert-card.completed {
+            border-left-color: #059669;
+            opacity: 0.75;
+            background: #f8fafc;
+        }
+        .alert-card.completed:hover {
+            opacity: 0.9;
+            transform: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .alert-card.completed .alert-content {
+            opacity: 0.8;
+        }
+        .alert-card.completed .sample-issues-container {
+            background: #ffffff;
+        }
+        .alert-card.completed .alert-meta {
+            background: #ffffff;
+        }
+        .alert-card.completed .alert-actions {
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            justify-content: flex-start;
+            padding: 12px 16px;
+        }
+        .alert-card.completed .status-completed {
+            color: #059669;
+            opacity: 0.8;
+        }
+        .alert-card.completed .badge {
+            opacity: 0.7;
+        }
+        .alert-card.completed .alert-header {
+            border-bottom-color: #e2e8f0;
+            opacity: 0.8;
+        }
+        .alert-card.completed .action-taken {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            opacity: 0.8;
+        }
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .alert-id {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .alert-date {
+            font-size: 0.85rem;
+            color: #95a5a6;
+        }
+        .alert-content {
+            flex-grow: 1;
+            margin-bottom: 32px;
+        }
+        .alert-description {
+            font-size: 0.9rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+        .alert-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+            padding: 8px;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
+        .alert-meta span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #475569;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .alert-meta span:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .alert-meta span i {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .alert-actions {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 8px 12px;
+            background: white;
+            border-top: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 0 0 8px 8px;
+        }
+        .alert-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .alert-status.completed {
+            background-color: #27ae60;
+            color: white;
+        }
+        .alert-status.action-required {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .alert-status.in-progress {
+            background-color: #f1c40f;
+            color: #2c3e50;
+        }
+        .status-open {
+            color: #059669;
+        }
+        .status-in-progress {
+            color: #d97706;
+        }
+        .status-completed {
+            color: #059669;
+        }
+        .alert-actions .btn {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .alert-actions .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .action-taken {
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 6px;
+            margin: 8px 0;
+            border: 1px solid #e2e8f0;
+        }
+        .action-taken label {
+            font-weight: 600;
+            color: #334155;
+            display: block;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+        }
+        .sample-issues-container {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 8px;
+            margin: 8px 0;
+        }
+        .sample-issue {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        .sample-issue:hover {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateX(2px);
+        }
+        .sample-issue:last-child {
+            margin-bottom: 0;
+        }
+        .sample-id {
+            font-weight: 600;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sample-id i {
+            color: #3b82f6;
+            font-size: 14px;
+        }
+        .issue-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .issue-badge.missing {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .issue-badge.damaged {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .alert-filters {
+            display: flex;
+            gap: 10px;
+        }
+        .alert-filters .btn {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.8rem;
+        }
+        .alert-filters .btn.active {
+            background-color: #34495e;
+            color: white;
+            border-color: #34495e;
+        }
+        .status-info {
+            color: #3498db;
+        }
+        .btn-primary {
+            background-color: #34495e;
+            border-color: #34495e;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2c3e50;
+            border-color: #2c3e50;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 73, 94, 0.2);
+        }
+        .text-success {
+            color: #27ae60 !important;
+        }
+        .text-success i {
+            margin-right: 4px;
+        }
+        .text-start {
+            text-align: left !important;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .alert-meta span i.fa-flask {
+            color: #34495e;
+        }
+        /* Modal Styles */
+        .modal {
+            z-index: 1050;
+        }
+        .modal-backdrop {
+            z-index: 1040;
+        }
+        .modal-dialog {
+            z-index: 1051;
+        }
+        .modal-header {
+            background-color: #34495e;
+            color: white;
+            border-bottom: none;
+        }
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+        .alert-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert-info-grid label {
+            font-weight: 600;
+            color: #34495e;
+            font-size: 0.9rem;
+        }
+        .alert-info-grid span {
+            display: block;
+            margin-top: 4px;
+            color: #2c3e50;
+        }
+        .form-label {
+            color: #34495e;
+            font-weight: 500;
+        }
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .bg-critical {
+            background-color: #ef4444 !important;
+        }
+        .bg-warning {
+            background-color: #f59e0b !important;
+            color: #000000 !important;
+        }
+        .bg-info {
+            background-color: #3b82f6 !important;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="/static/pycube-logo.png" alt="Pycube">
+        </div>
+        <nav class="main-nav">
+            <a href="/batching" class="nav-link">Batching</a>
+            <a href="/" class="nav-link">Shipments</a>
+            <a href="/receiving" class="nav-link">Receiving</a>
+            <a href="/analytics" class="nav-link">Analytics</a>
+            <a href="/alerts" class="nav-link active">Alerts</a>
+        </nav>
+        <div class="user-info">
+            {% if 'username' in session %}
+            <div class="user-profile-dropdown">
+                <div class="user-profile-trigger">
+                    <img src="/static/profile.jpg" alt="Profile" class="profile-image">
+                    <div class="user-details">
+                        <div class="user-name">{{ session['username'] }}</div>
+                        <div class="user-role">Clinic Manager</div>
+                    </div>
+                </div>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user"></i>
+                        User Profile
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="dropdown-item">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Log Out
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main>
+        <div class="container-wrapper">
+            <!-- KPI Section -->
+            <div class="kpi-container">
+                <div class="kpi">
+                    <div class="kpi-content">
+                        Action Required<br><span>3</span>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-content">
+                        Missing Samples<br><span>1</span>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-content">
+                        Damaged Containers<br><span>1</span>
+                    </div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-content">
+                        Delayed Shipments<br><span>1</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="alerts-container">
+                <div class="section-header">
+                    <h2>Action Required</h2>
+                    <div class="alert-filters">
+                        <button class="btn btn-sm btn-outline-secondary active">All</button>
+                        <button class="btn btn-sm btn-outline-secondary">Missing Samples</button>
+                        <button class="btn btn-sm btn-outline-secondary">Damaged</button>
+                        <button class="btn btn-sm btn-outline-secondary">Delayed</button>
+                        <button class="btn btn-sm btn-outline-secondary">Multiple Issues</button>
+                    </div>
+                </div>
+                <div class="alerts-grid">
+                    <!-- Cards will be moved here when action is taken -->
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="alerts-container">
+                <div class="section-header">
+                    <h2>In Progress</h2>
+                </div>
+                <div class="alerts-grid" id="inProgressGrid">
+                    <!-- Cards will be moved here when action is taken -->
+                </div>
+            </div>
+
+            <!-- Completed Section -->
+            <div class="alerts-container">
+                <div class="section-header">
+                    <h2>Completed</h2>
+                </div>
+                <div class="alerts-grid" id="completedGrid">
+                    <!-- Cards will be moved here when resolved -->
+                </div>
+            </div>
+
+            <!-- Notifications Section -->
+            <div class="alerts-container">
+                <div class="section-header">
+                    <h2>Recent Notifications</h2>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Notification ID</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Batch ID</th>
+                                <th>Origin</th>
+                                <th>Lab</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>NOT001</td>
+                                <td>Jan 24, 2024 14:30 PM</td>
+                                <td><span class="badge bg-info">Package Accepted</span></td>
+                                <td>B123456010</td>
+                                <td>Clinic 1</td>
+                                <td>Lab A</td>
+                                <td class="text-start">Batch received and verified at lab</td>
+                                <td><span class="text-success"><i class="fas fa-check-circle"></i> Acknowledged</span></td>
+                            </tr>
+                            <tr>
+                                <td>NOT002</td>
+                                <td>Jan 24, 2024 13:45 PM</td>
+                                <td><span class="badge bg-info">Package Accepted</span></td>
+                                <td>B123456009</td>
+                                <td>Clinic 3</td>
+                                <td>Lab B</td>
+                                <td class="text-start">Package accepted at lab receiving</td>
+                                <td><span class="text-success"><i class="fas fa-check-circle"></i> Acknowledged</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Take Action Modal -->
+    <div class="modal fade" id="takeActionModal" tabindex="-1" aria-labelledby="takeActionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="takeActionModalLabel">Take Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Alert Details Section -->
+                    <div class="alert-details mb-4">
+                        <h6 class="text-muted mb-3">Alert Details</h6>
+                        <div class="alert-info-grid">
+                            <div>
+                                <label>Alert ID</label>
+                                <span id="modalAlertId"></span>
+                            </div>
+                            <div>
+                                <label>Alert Type</label>
+                                <span id="modalAlertType"></span>
+                            </div>
+                            <div>
+                                <label>Batch ID</label>
+                                <span id="modalBatchId"></span>
+                            </div>
+                            <div>
+                                <label>Reported By</label>
+                                <span id="modalLabInfo"></span>
+                            </div>
+                            <div>
+                                <label>Description</label>
+                                <span id="modalDescription"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Response Form -->
+                    <form id="actionForm">
+                        <div class="mb-3">
+                            <label class="form-label">Action Type</label>
+                            <select class="form-select" id="actionType" required>
+                                <option value="">Select Action Type</option>
+                                <option value="sample_resent">Sample Resent</option>
+                                <option value="container_replaced">Container Replaced</option>
+                                <option value="shipment_expedited">Shipment Expedited</option>
+                                <option value="notify_fedex">Notify FedEx</option>
+                                <option value="other">Other Action</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Action Details</label>
+                            <textarea class="form-control" id="actionDetails" rows="3" 
+                                placeholder="Describe the actions taken to resolve this issue..." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Expected Resolution Date</label>
+                            <input type="datetime-local" class="form-control" id="resolutionDate" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Message to Lab</label>
+                            <textarea class="form-control" id="labMessage" rows="2" 
+                                placeholder="Add any specific message for the lab..." required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Attachments (if any)</label>
+                            <input type="file" class="form-control" id="attachments" multiple>
+                            <div class="form-text">Upload any relevant documents or images</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitAction()">Submit Response</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast for success message -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="actionToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Response submitted successfully!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load alerts from API
+            async function loadAlerts() {
+                try {
+                    // Fetch alerts from API
+                    const response = await fetch('/api/alerts');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch alerts');
+                    }
+                    
+                    const alerts = await response.json();
+                    
+                    // Clear all grids
+                    document.querySelector('.alerts-grid').innerHTML = '';
+                    document.getElementById('inProgressGrid').innerHTML = '';
+                    document.getElementById('completedGrid').innerHTML = '';
+                    
+                    // Sort alerts into appropriate sections
+                    alerts.forEach(alert => {
+                        let targetGrid;
+                        switch(alert.status) {
+                            case 'Action Required':
+                                targetGrid = document.querySelector('.alerts-grid');
+                                break;
+                            case 'In Progress':
+                                targetGrid = document.getElementById('inProgressGrid');
+                                break;
+                            case 'Completed':
+                                targetGrid = document.getElementById('completedGrid');
+                                break;
+                            default:
+                                targetGrid = document.querySelector('.alerts-grid');
+                        }
+                        createAlertCard(alert, targetGrid);
+                    });
+
+                    // Update KPI numbers
+                    updateKPINumbers(alerts);
+                } catch (error) {
+                    console.error('Error loading alerts:', error);
+                    showErrorToast('Failed to load alerts');
+                }
+            }
+
+            // Function to show take action modal
+            function showTakeActionModal(alertId) {
+                const card = document.querySelector(`.alert-card[data-alert-id="${alertId}"]`);
+                if (!card) return;
+
+                // Get alert details directly from this card
+                const alertType = card.querySelector('.badge').textContent;
+                const batchId = card.querySelector('.fa-box').parentElement.textContent.trim();
+                const labInfo = card.querySelector('.fa-flask').parentElement.textContent.trim();
+                const description = card.querySelector('.alert-description').textContent;
+
+                // Populate modal fields
+                document.getElementById('modalAlertId').textContent = alertId;
+                document.getElementById('modalAlertType').textContent = alertType;
+                document.getElementById('modalBatchId').textContent = batchId;
+                document.getElementById('modalLabInfo').textContent = labInfo;
+                document.getElementById('modalDescription').textContent = description;
+
+                // Set default resolution date to tomorrow
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                document.getElementById('resolutionDate').value = tomorrow.toISOString().slice(0, 16);
+
+                // Reset form state
+                resetModalState();
+
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('takeActionModal'));
+                modal.show();
+            }
+
+            // Function to format sample issues
+            function formatSampleIssues(description) {
+                // Check if the description contains sample issues
+                if (!description.includes('Issues found during lab verification:')) {
+                    return description;
+                }
+
+                // Extract sample issues
+                const issues = description.split('\n').filter(line => line.includes('S00'));
+                const formattedIssues = issues.map(issue => {
+                    const [sampleId, status] = issue.split(' (');
+                    const statusDetails = status.replace(')', '');
+                    return `
+                        <div class="sample-issue">
+                            <div class="sample-id">
+                                <i class="fas fa-vial"></i> ${sampleId.trim()}
+                            </div>
+                            <div class="issue-details">
+                                <span class="issue-badge ${statusDetails.toLowerCase().includes('missing') ? 'missing' : 'damaged'}">
+                                    ${statusDetails}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="alert-description mb-2">Issues found during lab verification:</div>
+                    <div class="sample-issues-container">
+                        ${formattedIssues}
+                    </div>
+                `;
+            }
+
+            // Function to create an alert card
+            function createAlertCard(alert, container) {
+                const card = document.createElement('div');
+                card.className = `alert-card ${alert.status.toLowerCase().replace(' ', '-')}`;
+                card.setAttribute('data-alert-id', alert.alertId);
+                
+                // Format sample issues HTML
+                const sampleIssuesHtml = alert.issues.map(issue => `
+                    <div class="sample-issue">
+                        <div class="sample-id">
+                            <i class="fas fa-vial"></i> ${issue.sampleId}
+                        </div>
+                        <div class="issue-details">
+                            <span class="issue-badge ${issue.issue.toLowerCase().includes('missing') ? 'missing' : 'damaged'}">
+                                ${issue.issue}
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+
+                let actionsHtml = '';
+                switch(alert.status) {
+                    case 'Action Required':
+                        actionsHtml = `
+                            <span class="alert-status action-required">
+                                <i class="fas fa-exclamation-circle"></i> ${alert.status}
+                            </span>
+                            <button class="btn btn-sm btn-primary take-action-btn" data-alert-id="${alert.alertId}">
+                                Take Action
+                            </button>
+                        `;
+                        break;
+                    case 'In Progress':
+                        actionsHtml = `
+                            <span class="alert-status in-progress">
+                                <i class="fas fa-clock"></i> ${alert.status}
+                            </span>
+                            <button class="btn btn-sm btn-secondary" onclick="viewAction('${alert.alertId}')">View Action</button>
+                            <button class="btn btn-sm btn-success" onclick="resolveAlert('${alert.alertId}')">Resolve</button>
+                        `;
+                        break;
+                    case 'Completed':
+                        actionsHtml = `
+                            <span class="alert-status completed">
+                                <i class="fas fa-check-circle"></i> ${alert.status}
+                            </span>
+                        `;
+                        break;
+                }
+                
+                card.innerHTML = `
+                    <div class="alert-header">
+                        <span class="alert-id">${alert.alertId}</span>
+                        <span class="badge ${getAlertBadgeClass(alert.type)}">${alert.type}</span>
+                        <span class="alert-date">${new Date(alert.date).toLocaleString()}</span>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-description">
+                            ${alert.description}
+                        </div>
+                        <div class="sample-issues-container">
+                            ${sampleIssuesHtml}
+                        </div>
+                        <div class="alert-meta">
+                            <span><i class="fas fa-box"></i> ${alert.batchId}</span>
+                            <span><i class="fas fa-hospital"></i> ${alert.clinic}</span>
+                            <span><i class="fas fa-flask"></i> ${alert.lab}</span>
+                            <span><i class="fas fa-truck"></i> ${alert.trackingNumber}</span>
+                        </div>
+                        ${alert.actionDetails ? `
+                            <div class="action-taken">
+                                <label>Action Taken</label>
+                                <div>${alert.actionType.replace('_', ' ').toUpperCase()}</div>
+                                <div class="mt-2"><small>${alert.actionDetails}</small></div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="alert-actions">
+                        ${actionsHtml}
+                    </div>
+                `;
+                
+                container.appendChild(card);
+
+                // Add click handler for Take Action button if present
+                const takeActionBtn = card.querySelector('.take-action-btn');
+                if (takeActionBtn) {
+                    takeActionBtn.addEventListener('click', () => {
+                        showTakeActionModal(alert.alertId);
+                    });
+                }
+            }
+
+            // Function to update KPI numbers
+            function updateKPINumbers(alerts) {
+                const actionRequired = alerts.filter(a => a.status === 'Action Required').length;
+                const missingSamples = alerts.filter(a => a.type === 'Missing Sample' || a.type === 'Missing Samples').length;
+                const damagedContainers = alerts.filter(a => a.type === 'Damaged Sample' || a.type === 'Damaged Samples').length;
+                const delayedShipments = alerts.filter(a => a.type === 'Shipment Delayed').length;
+
+                document.querySelector('.kpi:nth-child(1) span').textContent = actionRequired;
+                document.querySelector('.kpi:nth-child(2) span').textContent = missingSamples;
+                document.querySelector('.kpi:nth-child(3) span').textContent = damagedContainers;
+                document.querySelector('.kpi:nth-child(4) span').textContent = delayedShipments;
+            }
+
+            // Function to show error toast
+            function showErrorToast(message) {
+                const toastContainer = document.querySelector('.toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast error';
+                toast.innerHTML = `
+                    <div class="toast-icon error">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="toast-content">
+                        <h6 class="toast-title">Error</h6>
+                        <p class="toast-message">${message}</p>
+                    </div>
+                    <button type="button" class="toast-close" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                toastContainer.appendChild(toast);
+                setTimeout(() => toast.classList.add('show'), 100);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            }
+
+            function getAlertTypeClass(type) {
+                const typeMap = {
+                    'Missing Samples': 'warning',
+                    'Damaged Samples': 'critical',
+                    'Multiple Issues': 'critical'
+                };
+                return typeMap[type] || 'info';
+            }
+
+            function getAlertBadgeClass(type) {
+                const typeMap = {
+                    'Missing Samples': 'bg-critical',
+                    'Missing Sample': 'bg-critical',
+                    'Damaged Samples': 'bg-critical',
+                    'Damaged Sample': 'bg-critical',
+                    'Multiple Issues': 'bg-critical',
+                    'Shipment Delayed': 'bg-warning',
+                    'Damaged Container': 'bg-critical'
+                };
+                return typeMap[type] || 'bg-info';
+            }
+
+            // Load alerts when page loads
+            loadAlerts();
+
+            const profileTrigger = document.querySelector('.user-profile-trigger');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+            
+            profileTrigger?.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', function() {
+                dropdownMenu?.classList.remove('show');
+            });
+
+            // Add click handlers for Take Action buttons
+            document.querySelectorAll('.alert-card').forEach(card => {
+                const takeActionBtn = card.querySelector('.btn-primary');
+                takeActionBtn.addEventListener('click', () => {
+                    // Get alert details directly from this card
+                    const alertId = card.querySelector('.alert-id').textContent;
+                    const alertType = card.querySelector('.badge').textContent;
+                    const batchId = card.querySelector('.fa-box').parentElement.textContent.trim();
+                    const labInfo = card.querySelector('.fa-flask').parentElement.textContent.trim();
+                    const description = card.querySelector('.alert-description').textContent;
+
+                    // Populate modal fields
+                    document.getElementById('modalAlertId').textContent = alertId;
+                    document.getElementById('modalAlertType').textContent = alertType;
+                    document.getElementById('modalBatchId').textContent = batchId;
+                    document.getElementById('modalLabInfo').textContent = labInfo;
+                    document.getElementById('modalDescription').textContent = description;
+
+                    // Set default resolution date to tomorrow
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    document.getElementById('resolutionDate').value = tomorrow.toISOString().slice(0, 16);
+
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('takeActionModal'));
+                    modal.show();
+                });
+            });
+
+            // Add data-alert-id attribute to all alert cards
+            document.querySelectorAll('.alert-card').forEach(card => {
+                const alertId = card.querySelector('.alert-id').textContent;
+                card.setAttribute('data-alert-id', alertId);
+            });
+
+            // Handle modal hidden event
+            const actionModal = document.getElementById('takeActionModal');
+            actionModal.addEventListener('hidden.bs.modal', function () {
+                resetModalState();
+            });
+
+            // Filter functionality
+            const filterButtons = document.querySelectorAll('.alert-filters .btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Update active state of buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    // Get filter type
+                    const filterType = button.textContent.trim();
+
+                    // Get all cards in the Action Required section
+                    const alertCards = document.querySelector('.alerts-grid').querySelectorAll('.alert-card');
+                    
+                    alertCards.forEach(card => {
+                        const cardType = card.querySelector('.badge').textContent.trim();
+                        
+                        if (filterType === 'All') {
+                            card.style.display = '';
+                        } else {
+                            // Map filter button text to actual alert types
+                            const filterMap = {
+                                'Missing Samples': ['Missing Samples', 'Missing Sample'],
+                                'Damaged': ['Damaged Samples', 'Damaged Sample', 'Damaged Container'],
+                                'Delayed': ['Shipment Delayed'],
+                                'Multiple Issues': ['Multiple Issues']
+                            };
+                            
+                            // Check if card type matches any of the mapped types for this filter
+                            const matchingTypes = filterMap[filterType] || [];
+                            card.style.display = matchingTypes.includes(cardType) ? '' : 'none';
+                        }
+                    });
+                });
+            });
+        });
+
+        async function submitAction() {
+            // Get form data
+            const formData = {
+                alertId: document.getElementById('modalAlertId').textContent,
+                actionType: document.getElementById('actionType').value,
+                actionDetails: document.getElementById('actionDetails').value,
+                resolutionDate: document.getElementById('resolutionDate').value,
+                labMessage: document.getElementById('labMessage').value,
+                status: 'In Progress'
+            };
+
+            try {
+                // Update alert in backend
+                const response = await fetch(`/api/alerts/${formData.alertId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update alert');
+                }
+
+                // Show success toast with correct message
+                const toastBody = document.querySelector('.toast-body');
+                toastBody.innerHTML = '<i class="fas fa-clock me-2"></i>Action submitted and alert moved to In Progress';
+                const toast = new bootstrap.Toast(document.getElementById('actionToast'));
+                toast.show();
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('takeActionModal'));
+                modal.hide();
+
+                // Reset modal state
+                resetModalState();
+
+                // Update card and move it to in-progress section
+                const alertId = formData.alertId;
+                const card = document.querySelector(`.alert-card[data-alert-id="${alertId}"]`);
+                if (card) {
+                    // Remove any existing status classes
+                    card.classList.remove('completed');
+                    // Add in-progress class
+                    card.classList.add('in-progress');
+
+                    // Update status text and icon
+                    const statusSpan = card.querySelector('.alert-status');
+                    statusSpan.innerHTML = '<i class="fas fa-clock"></i> In Progress';
+                    statusSpan.classList.remove('status-open');
+                    statusSpan.classList.add('status-in-progress');
+
+                    // Add action taken section
+                    const actionTaken = document.createElement('div');
+                    actionTaken.className = 'action-taken';
+                    actionTaken.innerHTML = `
+                        <label>Action Taken</label>
+                        <div>${formData.actionType.replace('_', ' ').toUpperCase()}</div>
+                        <div class="mt-2"><small>${formData.actionDetails}</small></div>
+                    `;
+                    card.querySelector('.alert-content').appendChild(actionTaken);
+
+                    // Update actions section
+                    const actionsDiv = card.querySelector('.alert-actions');
+                    actionsDiv.innerHTML = `
+                        <span class="alert-status status-in-progress">
+                            <i class="fas fa-clock"></i> In Progress
+                        </span>
+                        <button class="btn btn-sm btn-secondary" onclick="viewAction('${alertId}')">View Action</button>
+                        <button class="btn btn-sm btn-success" onclick="resolveAlert('${alertId}')">Resolve</button>
+                    `;
+
+                    // Move card to in-progress section
+                    const inProgressGrid = document.getElementById('inProgressGrid');
+                    inProgressGrid.appendChild(card);
+                }
+            } catch (error) {
+                console.error('Error updating alert:', error);
+                showErrorToast('Failed to update alert');
+            }
+        }
+
+        async function resolveAlert(alertId) {
+            try {
+                // Update alert status in backend
+                const response = await fetch(`/api/alerts/${alertId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: 'Completed',
+                        completedDate: new Date().toISOString()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update alert');
+                }
+
+                const card = document.querySelector(`.alert-card[data-alert-id="${alertId}"]`);
+                if (card) {
+                    // Remove any existing status classes
+                    card.classList.remove('in-progress', 'action-required');
+                    // Add completed class
+                    card.classList.add('completed');
+                    
+                    // Update the actions section
+                    const actionsDiv = card.querySelector('.alert-actions');
+                    actionsDiv.innerHTML = `
+                        <span class="alert-status completed">
+                            <i class="fas fa-check-circle"></i> Completed
+                        </span>
+                    `;
+
+                    // Move to completed section
+                    const completedGrid = document.getElementById('completedGrid');
+                    completedGrid.appendChild(card);
+
+                    // Show success toast
+                    const toast = new bootstrap.Toast(document.getElementById('actionToast'));
+                    document.querySelector('.toast-body').innerHTML = 
+                        '<i class="fas fa-check-circle me-2"></i>Alert marked as resolved!';
+                    toast.show();
+                }
+            } catch (error) {
+                console.error('Error resolving alert:', error);
+                showErrorToast('Failed to resolve alert');
+            }
+        }
+
+        function viewAction(alertId) {
+            // Show modal in view mode
+            const card = document.querySelector(`.alert-card[data-alert-id="${alertId}"]`);
+            const actionTaken = card.querySelector('.action-taken');
+            
+            // Populate modal
+            document.getElementById('modalAlertId').textContent = alertId;
+            document.getElementById('actionType').value = actionTaken.querySelector('div').textContent.toLowerCase().replace(' ', '_');
+            document.getElementById('actionDetails').value = actionTaken.querySelector('small').textContent;
+
+            // Disable all form fields
+            disableModalFields(true);
+
+            // Update modal title
+            document.getElementById('takeActionModalLabel').textContent = 'View Action';
+
+            // Hide submit button, show close button only
+            const modalFooter = document.querySelector('.modal-footer');
+            modalFooter.innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>';
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('takeActionModal'));
+            modal.show();
+        }
+
+        function resetModalState() {
+            // Reset form
+            document.getElementById('actionForm').reset();
+            
+            // Enable all fields
+            disableModalFields(false);
+            
+            // Reset modal title
+            document.getElementById('takeActionModalLabel').textContent = 'Take Action';
+            
+            // Reset footer buttons
+            const modalFooter = document.querySelector('.modal-footer');
+            modalFooter.innerHTML = `
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitAction()">Submit Response</button>
+            `;
+        }
+
+        function disableModalFields(disabled) {
+            const fields = ['actionType', 'actionDetails', 'resolutionDate', 'labMessage', 'attachments'];
+            fields.forEach(field => {
+                document.getElementById(field).disabled = disabled;
+            });
+        }
+
+        function getStatusBadgeClass(status) {
+            const statusMap = {
+                'Completed': 'completed',
+                'Action Required': 'action-required',
+                'In Progress': 'in-progress'
+            };
+            return `alert-status ${statusMap[status] || 'action-required'}`;
+        }
+
+        // Update the status badge in the alert card
+        function updateAlertStatus(alertCard, status) {
+            const statusBadge = alertCard.querySelector('.alert-status');
+            if (statusBadge) {
+                statusBadge.className = getStatusBadgeClass(status);
+                statusBadge.textContent = status;
+            }
+        }
+    </script>
+</body>
+</html> 

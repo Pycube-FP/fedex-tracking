@@ -1,0 +1,106 @@
+[
+    {
+        "batchId": "B394394913",
+        "trackingNumber": "774722097751",
+        "origin": "clinic1",
+        "destination": "lab2",
+        "expectedSamples": 2,
+        "samples": [
+            {
+                "id": "S001",
+                "type": "Biopsy (Formalin-Fixed)",
+                "patientRef": "P001",
+                "mrn": "M001",
+                "collectionDate": "2025-01-30T16:26",
+                "containerCount": "1",
+                "status": "missing",
+                "comments": ""
+            },
+            {
+                "id": "S002",
+                "type": "Glass Slides",
+                "patientRef": "P01",
+                "mrn": "M02",
+                "collectionDate": "2025-01-30T04:26",
+                "containerCount": "1",
+                "status": "missing",
+                "comments": ""
+            }
+        ],
+        "status": "Missing Samples",
+        "shippedAt": "2025-01-30T16:27:00.706975",
+        "receivedAt": "2025-01-30T21:42:44.703Z",
+        "createdAt": "1/30/2025, 4:26:59 PM",
+        "expectedDeliveryDate": "2025-01-31T21:27:00.704Z",
+        "notified": true
+    },
+    {
+        "batchId": "B394394913",
+        "trackingNumber": "774722097751",
+        "origin": "clinic1",
+        "destination": "lab2",
+        "expectedSamples": 2,
+        "samples": [
+            {
+                "id": "S001",
+                "type": "Biopsy (Formalin-Fixed)",
+                "patientRef": "P001",
+                "mrn": "M001",
+                "collectionDate": "2025-01-30T16:26",
+                "containerCount": "1",
+                "status": "damaged",
+                "comments": ""
+            },
+            {
+                "id": "S002",
+                "type": "Glass Slides",
+                "patientRef": "P01",
+                "mrn": "M02",
+                "collectionDate": "2025-01-30T04:26",
+                "containerCount": "1",
+                "status": "damaged",
+                "comments": ""
+            }
+        ],
+        "status": "Damaged Samples",
+        "shippedAt": "2025-01-30T16:27:00.706975",
+        "receivedAt": "2025-01-30T21:45:48.729Z",
+        "createdAt": "1/30/2025, 4:26:59 PM",
+        "expectedDeliveryDate": "2025-01-31T21:27:00.704Z"
+    },
+    {
+        "batchId": "B394394914",
+        "trackingNumber": "774722097751",
+        "origin": "clinic1",
+        "destination": "lab2",
+        "expectedSamples": 2,
+        "samples": [
+            {
+                "id": "S001",
+                "type": "Biopsy (Formalin-Fixed)",
+                "patientRef": "P001",
+                "mrn": "M001",
+                "collectionDate": "2025-01-30T16:26",
+                "containerCount": "1",
+                "status": "missing",
+                "comments": ""
+            },
+            {
+                "id": "S002",
+                "type": "Glass Slides",
+                "patientRef": "P01",
+                "mrn": "M02",
+                "collectionDate": "2025-01-30T04:26",
+                "containerCount": "1",
+                "status": "missing",
+                "comments": ""
+            }
+        ],
+        "status": "Missing Samples",
+        "shippedAt": "2025-01-30T16:27:00.706975",
+        "receivedAt": "2025-01-30T21:46:58.405Z",
+        "createdAt": "1/30/2025, 4:26:59 PM",
+        "expectedDeliveryDate": "2025-01-31T21:27:00.704Z",
+        "notified": true
+    }
+]

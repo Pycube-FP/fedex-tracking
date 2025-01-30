@@ -477,6 +477,28 @@
             border-color: #e67e22;
             color: #ffffff;
         }
+        .toast {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            margin-bottom: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast-body {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        .toast-body i {
+            margin-right: 0.5rem;
+        }
+        .btn-close-white {
+            filter: brightness(0) invert(1);
+        }
     </style>
 </head>
 <body>
@@ -489,6 +511,7 @@
             <a href="/" class="nav-link">Shipments</a>
             <a href="/receiving" class="nav-link active">Receiving</a>
             <a href="/analytics" class="nav-link">Analytics</a>
+            <a href="/alerts" class="nav-link">Alerts</a>
         </nav>
         <div class="user-info">
             {% if 'username' in session %}
@@ -681,7 +704,27 @@
         </div>
     </div>
 
-    <div class="toast-container"></div>
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Operation successful!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    Operation failed!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -698,252 +741,68 @@
                 focus: true
             });
 
-            // Sample data for demonstration
-            const pendingDeliveries = [
-                {
-                    batchId: 'B123456001',
-                    trackingNumber: '123456789012',
-                    origin: 'Clinic 1',
-                    expectedSamples: 3,
-                    shipDate: '2024-01-24 09:00 AM',
-                    status: 'In Transit',
-                    samples: [
-                        { id: 'S001', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12345' },
-                        { id: 'S002', type: 'Glass Slides', patientRef: 'P12346' },
-                        { id: 'S003', type: 'Other', patientRef: 'P12347' }
-                    ]
-                },
-                {
-                    batchId: 'B123456002',
-                    trackingNumber: '234567890123',
-                    origin: 'Clinic 2',
-                    expectedSamples: 2,
-                    shipDate: '2024-01-24 10:30 AM',
-                    status: 'In Transit',
-                    samples: [
-                        { id: 'S004', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12348' },
-                        { id: 'S005', type: 'Glass Slides', patientRef: 'P12349' }
-                    ]
-                },
-                {
-                    batchId: 'B123456003',
-                    trackingNumber: '345678901234',
-                    origin: 'Clinic 3',
-                    expectedSamples: 4,
-                    shipDate: '2024-01-24 11:45 AM',
-                    status: 'In Transit',
-                    samples: [
-                        { id: 'S006', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12350' },
-                        { id: 'S007', type: 'Glass Slides', patientRef: 'P12351' },
-                        { id: 'S008', type: 'Other', patientRef: 'P12352' },
-                        { id: 'S009', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12353' }
-                    ]
-                },
-                {
-                    batchId: 'B123456004',
-                    trackingNumber: '456789012345',
-                    origin: 'Clinic 1',
-                    expectedSamples: 1,
-                    shipDate: '2024-01-24 13:15 PM',
-                    status: 'In Transit',
-                    samples: [
-                        { id: 'S010', type: 'Glass Slides', patientRef: 'P12354' }
-                    ]
-                },
-                {
-                    batchId: 'B123456005',
-                    trackingNumber: '567890123456',
-                    origin: 'Clinic 2',
-                    expectedSamples: 3,
-                    shipDate: '2024-01-24 14:30 PM',
-                    status: 'In Transit',
-                    samples: [
-                        { id: 'S011', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12355' },
-                        { id: 'S012', type: 'Glass Slides', patientRef: 'P12356' },
-                        { id: 'S013', type: 'Other', patientRef: 'P12357' }
-                    ]
-                }
-            ];
+            // Store deliveries in a global variable
+            let deliveries = [];
 
-            // Add this after pendingDeliveries declaration
-            const initialReceivedDeliveries = [
-                {
-                    batchId: 'B123455999',
-                    trackingNumber: '123456788999',
-                    origin: 'Clinic 1',
-                    expectedSamples: 3,
-                    receivedDate: '2024-01-24 08:30 AM',
-                    status: 'Received Complete',
-                    samples: [
-                        { id: 'S001', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12340', status: 'received', comments: 'All samples in good condition' },
-                        { id: 'S002', type: 'Glass Slides', patientRef: 'P12341', status: 'received', comments: '' },
-                        { id: 'S003', type: 'Other', patientRef: 'P12342', status: 'received', comments: '' }
-                    ]
-                },
-                {
-                    batchId: 'B123455998',
-                    trackingNumber: '123456788998',
-                    origin: 'Clinic 2',
-                    expectedSamples: 2,
-                    receivedDate: '2024-01-24 09:15 AM',
-                    status: 'Missing Samples',
-                    samples: [
-                        { id: 'S004', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12343', status: 'missing', comments: 'Sample not found in package' },
-                        { id: 'S005', type: 'Glass Slides', patientRef: 'P12344', status: 'received', comments: '' }
-                    ]
-                },
-                {
-                    batchId: 'B123455997',
-                    trackingNumber: '123456788997',
-                    origin: 'Clinic 3',
-                    expectedSamples: 2,
-                    receivedDate: '2024-01-24 10:45 AM',
-                    status: 'Damaged Samples',
-                    samples: [
-                        { id: 'S006', type: 'Biopsy (Formalin-Fixed)', patientRef: 'P12345', status: 'damaged', comments: 'Container leaked during transit' },
-                        { id: 'S007', type: 'Glass Slides', patientRef: 'P12346', status: 'received', comments: '' }
-                    ]
-                }
-            ];
+            // Function to load expected deliveries
+            async function loadExpectedDeliveries() {
+                try {
+                    const response = await fetch('/api/receiving/expected');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch expected deliveries');
+                    }
+                    
+                    deliveries = await response.json(); // Store deliveries globally
+                    
+                    // Update the KPI
+                    document.getElementById('expectedDeliveries').textContent = deliveries.length;
+                    document.getElementById('pendingReceipt').textContent = deliveries.length;
+                    
+                    // Get the table body
+                    const tableBody = document.getElementById('expectedDeliveriesTable');
+                    
+                    // Clear existing content
+                    tableBody.innerHTML = '';
+                    
+                    // Show/hide empty state
+                    document.getElementById('expectedEmptyState').style.display = 
+                        deliveries.length === 0 ? 'block' : 'none';
+                    
+                    // Add each delivery to the table
+                    deliveries.forEach(delivery => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${delivery.batchId}</td>
+                            <td>${delivery.trackingNumber}</td>
+                            <td>${delivery.origin}</td>
+                            <td>${delivery.expectedSamples}</td>
+                            <td>${new Date(delivery.shippedAt).toLocaleString()}</td>
+                            <td><span class="badge bg-in-transit">In Transit</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-info receive-btn">
+                                    <i class="fas fa-clipboard-check"></i> Receive
+                                </button>
+                            </td>
+                        `;
 
-            // Update KPIs
-            document.getElementById('expectedDeliveries').textContent = pendingDeliveries.length;
-            document.getElementById('pendingReceipt').textContent = pendingDeliveries.length;
+                        // Add click handler for receive button
+                        const receiveBtn = row.querySelector('.receive-btn');
+                        receiveBtn.addEventListener('click', () => {
+                            showReceiptDetails(delivery.batchId, delivery.samples);
+                        });
 
-            // Populate expected deliveries table
-            const expectedDeliveriesTable = document.getElementById('expectedDeliveriesTable');
-            pendingDeliveries.forEach(delivery => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${delivery.batchId}</td>
-                    <td>${delivery.trackingNumber}</td>
-                    <td>${delivery.origin}</td>
-                    <td>${delivery.expectedSamples}</td>
-                    <td>${delivery.shipDate}</td>
-                    <td><span class="badge bg-in-transit">In Transit</span></td>
-                    <td>
-                        <button type="button" class="btn btn-primary btn-sm receive-btn">
-                            <i class="fas fa-check-circle"></i> Receive
-                        </button>
-                    </td>
-                `;
-
-                // Add click handler for the receive button
-                const receiveBtn = row.querySelector('.receive-btn');
-                receiveBtn.addEventListener('click', function(event) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    showReceivingModal(delivery);
-                });
-
-                expectedDeliveriesTable.appendChild(row);
-            });
-
-            // Initialize received deliveries
-            const receivedDeliveriesTable = document.getElementById('receivedDeliveriesTable');
-            initialReceivedDeliveries.forEach(delivery => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${delivery.batchId}</td>
-                    <td>${delivery.trackingNumber}</td>
-                    <td>${delivery.origin}</td>
-                    <td>${delivery.expectedSamples}</td>
-                    <td>${delivery.receivedDate}</td>
-                    <td><span class="badge ${getStatusBadgeClass(delivery.status)}">${delivery.status}</span></td>
-                    <td>
-                        <button type="button" class="btn btn-info btn-sm view-details-btn">
-                            <i class="fas fa-eye"></i> View Details
-                        </button>
-                        ${(delivery.status === 'Missing Samples' || delivery.status === 'Damaged Samples' || delivery.status === 'Multiple Issues') ? `
-                        <button type="button" class="btn btn-notify btn-sm notify-clinic-btn" data-batch-id="${delivery.batchId}">
-                            <i class="fas fa-bell"></i> Notify Clinic
-                        </button>
-                        ` : ''}
-                    </td>
-                `;
-
-                // Add click handler for view details button
-                const viewDetailsBtn = row.querySelector('.view-details-btn');
-                viewDetailsBtn.addEventListener('click', () => {
-                    showReceiptDetails(delivery.batchId, delivery.samples);
-                });
-
-                // Add click handler for notify clinic button
-                const notifyBtn = row.querySelector('.notify-clinic-btn');
-                if (notifyBtn) {
-                    notifyBtn.addEventListener('click', () => {
-                        notifyClinic(delivery);
+                        tableBody.appendChild(row);
                     });
+                    
+                } catch (error) {
+                    console.error('Error loading expected deliveries:', error);
+                    showErrorToast('Failed to load expected deliveries');
                 }
-
-                receivedDeliveriesTable.appendChild(row);
-            });
-
-            // Update KPIs with initial data
-            document.getElementById('receivedToday').textContent = initialReceivedDeliveries.length;
-            document.getElementById('withDiscrepancies').textContent = 
-                initialReceivedDeliveries.filter(d => 
-                    d.status === 'Missing Samples' || 
-                    d.status === 'Damaged Samples' || 
-                    d.status === 'Multiple Issues'
-                ).length;
-            document.getElementById('completeReceipt').textContent = 
-                initialReceivedDeliveries.filter(d => d.status === 'Received Complete').length;
-
-            // Helper function to get status badge class
-            function getStatusBadgeClass(status) {
-                const classes = {
-                    'Received Complete': 'bg-success',
-                    'Missing Samples': 'bg-warning',
-                    'Damaged Samples': 'bg-danger',
-                    'Multiple Issues': 'bg-danger'
-                };
-                return classes[status] || 'bg-secondary';
             }
 
-            // Function to show receiving modal with shipment details
-            function showReceivingModal(delivery) {
-                // Populate modal with shipment details
-                document.getElementById('modalBatchId').textContent = delivery.batchId;
-                document.getElementById('modalTrackingNumber').textContent = delivery.trackingNumber;
-                document.getElementById('modalOrigin').textContent = delivery.origin;
-                document.getElementById('modalShipDate').textContent = delivery.shipDate;
-                document.getElementById('modalExpectedSamples').textContent = delivery.expectedSamples;
-                document.getElementById('modalStatus').textContent = delivery.status;
-
-                // Populate samples list
-                const samplesList = document.getElementById('samplesList');
-                samplesList.innerHTML = delivery.samples.map(sample => `
-                    <div class="sample-item">
-                        <div class="sample-header">
-                            <div class="sample-info">
-                                <p><strong>Sample ID:</strong> ${sample.id}</p>
-                                <p><strong>Type:</strong> ${getSampleTypeBadge(sample.type)}</p>
-                                <p><strong>Patient Ref:</strong> ${sample.patientRef}</p>
-                            </div>
-                            <div class="sample-status">
-                                <select class="form-select">
-                                    <option value="" selected disabled>Select Status</option>
-                                    <option value="received">Received</option>
-                                    <option value="missing">Missing</option>
-                                    <option value="damaged">Damaged</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="comments-section">
-                            <textarea class="form-control" rows="2" 
-                                    placeholder="Add comments (e.g., condition issues, discrepancies)"></textarea>
-                        </div>
-                    </div>
-                `).join('');
-
-                // Show the modal
-                receivingModal.show();
-
-                // Ensure the modal is properly focused and interactive
-                document.getElementById('receivingModal').style.display = 'block';
-                document.getElementById('receivingModal').classList.add('show');
-            }
+            // Load both expected and received deliveries when page loads
+            loadExpectedDeliveries();
+            loadReceivedDeliveries();
 
             // Update search functionality to search in both tables
             const searchInput = document.getElementById('shipmentSearch');
@@ -965,13 +824,10 @@
                 });
             });
 
-            // Function to determine overall shipment status based on sample statuses
+            // Function to determine overall shipment status
             function determineShipmentStatus(sampleStatuses) {
-                if (sampleStatuses.length === 0) return 'Pending';
-                
                 const hasMissing = sampleStatuses.includes('missing');
                 const hasDamaged = sampleStatuses.includes('damaged');
-                const hasReceived = sampleStatuses.includes('received');
                 
                 if (hasMissing && hasDamaged) {
                     return 'Multiple Issues';
@@ -979,10 +835,9 @@
                     return 'Missing Samples';
                 } else if (hasDamaged) {
                     return 'Damaged Samples';
-                } else if (hasReceived) {
+                } else {
                     return 'Received Complete';
                 }
-                return 'Pending';
             }
 
             // Function to get status badge HTML
@@ -999,44 +854,314 @@
                 return `<span class="badge ${badgeClasses[status]}">${status}</span>`;
             }
 
-            // Function to move delivery from expected to received
-            function moveToReceived(delivery, status, sampleDetails) {
-                // Remove from expected deliveries
-                const expectedRow = Array.from(document.getElementById('expectedDeliveriesTable').getElementsByTagName('tr'))
-                    .find(row => row.cells[0].textContent === delivery.batchId);
-                if (expectedRow) {
-                    expectedRow.remove();
+            // Add this variable to store received deliveries
+            let receivedDeliveries = [];
+
+            // Function to get status badge class
+            function getStatusBadgeClass(status) {
+                const statusMap = {
+                    'received': 'bg-success',
+                    'missing': 'bg-warning',
+                    'damaged': 'bg-danger',
+                    'Multiple Issues': 'bg-danger',
+                    'Missing Samples': 'bg-warning',
+                    'Damaged Samples': 'bg-warning',
+                    'Received Complete': 'bg-success',
+                    'In Transit': 'bg-in-transit'
+                };
+                return statusMap[status.toLowerCase()] || 'bg-secondary';
+            }
+
+            // Function to show error toast
+            function showErrorToast(message) {
+                const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                document.querySelector('#errorToast .toast-body').innerHTML = 
+                    `<i class="fas fa-exclamation-circle me-2"></i>${message}`;
+                toast.show();
+            }
+
+            // Function to load received deliveries
+            async function loadReceivedDeliveries() {
+                try {
+                    const response = await fetch('/api/receiving/received');
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch received deliveries');
+                    }
+                    
+                    receivedDeliveries = await response.json();
+                    console.log('Loaded received deliveries:', receivedDeliveries); // Debug log
+                    
+                    // Update KPIs
+                    document.getElementById('receivedToday').textContent = receivedDeliveries.length;
+                    document.getElementById('withDiscrepancies').textContent = 
+                        receivedDeliveries.filter(d => 
+                            d.status === 'Missing Samples' || 
+                            d.status === 'Damaged Samples' || 
+                            d.status === 'Multiple Issues'
+                        ).length;
+                    document.getElementById('completeReceipt').textContent = 
+                        receivedDeliveries.filter(d => d.status === 'Received Complete').length;
+                    
+                    // Get the table body
+                    const tableBody = document.getElementById('receivedDeliveriesTable');
+                    
+                    // Clear existing content
+                    tableBody.innerHTML = '';
+                    
+                    // Show/hide empty state
+                    const emptyState = document.getElementById('receivedEmptyState');
+                    if (emptyState) {
+                        emptyState.style.display = receivedDeliveries.length === 0 ? 'block' : 'none';
+                    }
+                    
+                    // Add each delivery to the table
+                    receivedDeliveries.forEach(delivery => {
+                        const row = document.createElement('tr');
+                        const isNotified = delivery.notified === true;
+                        const hasIssues = delivery.status === 'Missing Samples' || 
+                                        delivery.status === 'Damaged Samples' || 
+                                        delivery.status === 'Multiple Issues';
+                        
+                        row.innerHTML = `
+                            <td>${delivery.batchId}</td>
+                            <td>${delivery.trackingNumber}</td>
+                            <td>${delivery.origin}</td>
+                            <td>${delivery.expectedSamples}</td>
+                            <td>${new Date(delivery.receivedAt).toLocaleString()}</td>
+                            <td>${getStatusBadgeHTML(delivery.status)}</td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm view-details-btn" data-batch-id="${delivery.batchId}">
+                                    <i class="fas fa-eye"></i> View Details
+                                </button>
+                                ${hasIssues ? `
+                                <button type="button" class="btn ${isNotified ? 'btn-success' : 'btn-notify'} btn-sm notify-clinic-btn" 
+                                        data-batch-id="${delivery.batchId}" ${isNotified ? 'disabled' : ''}>
+                                    <i class="fas ${isNotified ? 'fa-check' : 'fa-bell'}"></i> 
+                                    ${isNotified ? 'Notified' : 'Notify Clinic'}
+                                </button>
+                                ` : ''}
+                            </td>
+                        `;
+
+                        // Add click handler for view details button
+                        const viewDetailsBtn = row.querySelector('.view-details-btn');
+                        viewDetailsBtn.addEventListener('click', () => {
+                            const batchId = viewDetailsBtn.getAttribute('data-batch-id');
+                            const delivery = receivedDeliveries.find(d => d.batchId === batchId);
+                            if (delivery) {
+                                const modal = new bootstrap.Modal(document.getElementById('receivingModal'));
+                                showReceiptDetails(batchId, delivery.samples, true);
+                            }
+                        });
+
+                        // Add click handler for notify clinic button if it exists
+                        const notifyBtn = row.querySelector('.notify-clinic-btn');
+                        if (notifyBtn && !isNotified) {
+                            notifyBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                notifyClinic(delivery);
+                            });
+                        }
+
+                        tableBody.appendChild(row);
+                    });
+                    
+                } catch (error) {
+                    console.error('Error loading received deliveries:', error);
+                    showErrorToast('Failed to load received deliveries');
                 }
+            }
 
-                // Add to received deliveries
-                const receivedTable = document.getElementById('receivedDeliveriesTable');
-                const newRow = document.createElement('tr');
-                const receivedDate = new Date().toLocaleString();
-                
-                newRow.innerHTML = `
-                    <td>${delivery.batchId}</td>
-                    <td>${delivery.trackingNumber}</td>
-                    <td>${delivery.origin}</td>
-                    <td>${delivery.expectedSamples}</td>
-                    <td>${receivedDate}</td>
-                    <td>${getStatusBadgeHTML(status)}</td>
-                    <td>
-                        <button type="button" class="btn btn-info btn-sm view-details-btn">
-                            <i class="fas fa-eye"></i> View Details
-                        </button>
-                    </td>
-                `;
+            // Make showReceiptDetails function globally accessible
+            window.showReceiptDetails = function(batchId, samples, isReceived = false) {
+                try {
+                    console.log('Showing receipt details for batch:', batchId, 'isReceived:', isReceived); // Debug log
+                    
+                    // Get the delivery details from the appropriate array
+                    const delivery = isReceived 
+                        ? receivedDeliveries.find(d => d.batchId === batchId)
+                        : deliveries.find(d => d.batchId === batchId);
 
-                // Add click handler for view details button
-                const viewDetailsBtn = newRow.querySelector('.view-details-btn');
-                viewDetailsBtn.addEventListener('click', () => {
-                    showReceiptDetails(delivery.batchId, sampleDetails);
-                });
+                    console.log('Found delivery:', delivery); // Debug log
 
-                receivedTable.insertBefore(newRow, receivedTable.firstChild);
-                
-                // Update empty states
-                updateEmptyStates();
+                    if (!delivery) {
+                        console.error('Delivery not found:', batchId);
+                        showErrorToast('Delivery details not found');
+                        return;
+                    }
+
+                    // Update modal title based on view mode
+                    const modalTitle = document.getElementById('receivingModalLabel');
+                    if (modalTitle) {
+                        modalTitle.textContent = isReceived ? 'View Receipt Details' : 'Receive Shipment';
+                    }
+
+                    // Update batch details
+                    const modalBatchId = document.getElementById('modalBatchId');
+                    const modalTrackingNumber = document.getElementById('modalTrackingNumber');
+                    const modalOrigin = document.getElementById('modalOrigin');
+                    const modalShipDate = document.getElementById('modalShipDate');
+                    const modalExpectedSamples = document.getElementById('modalExpectedSamples');
+                    const modalStatus = document.getElementById('modalStatus');
+
+                    if (modalBatchId) modalBatchId.textContent = delivery.batchId;
+                    if (modalTrackingNumber) modalTrackingNumber.textContent = delivery.trackingNumber;
+                    if (modalOrigin) modalOrigin.textContent = delivery.origin;
+                    if (modalShipDate) modalShipDate.textContent = new Date(delivery.shippedAt).toLocaleString();
+                    if (modalExpectedSamples) modalExpectedSamples.textContent = delivery.expectedSamples;
+                    if (modalStatus) modalStatus.innerHTML = getStatusBadgeHTML(delivery.status || 'In Transit');
+                    
+                    // Clear and update samples list
+                    const samplesList = document.getElementById('samplesList');
+                    if (samplesList) {
+                        samplesList.innerHTML = '';
+
+                        delivery.samples.forEach((sample, index) => {
+                            const sampleDiv = document.createElement('div');
+                            sampleDiv.className = 'sample-item';
+                            
+                            if (isReceived) {
+                                // For received deliveries, show the final status and comments
+                                sampleDiv.innerHTML = `
+                                    <div class="sample-header">
+                                        <div>
+                                            <strong>Sample ID:</strong> ${sample.id}
+                                            ${getSampleTypeBadge(sample.type || 'undefined')}
+                                        </div>
+                                        <div class="sample-status">
+                                            <span class="badge ${getStatusBadgeClass(sample.status)}">${sample.status}</span>
+                                        </div>
+                                    </div>
+                                    ${sample.comments ? `
+                                    <div class="comments-section">
+                                        <p class="mb-0"><strong>Comments:</strong> ${sample.comments}</p>
+                                    </div>
+                                    ` : ''}
+                                `;
+                            } else {
+                                // For expected deliveries, show the status selection
+                                sampleDiv.innerHTML = `
+                                    <div class="sample-header">
+                                        <div>
+                                            <strong>Sample ID:</strong> ${sample.id}
+                                            ${getSampleTypeBadge(sample.type || 'undefined')}
+                                        </div>
+                                        <div class="sample-status">
+                                            <select class="form-select form-select-sm" required>
+                                                <option value="">Select Status</option>
+                                                <option value="received">Received</option>
+                                                <option value="missing">Missing</option>
+                                                <option value="damaged">Damaged</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="comments-section">
+                                        <textarea class="form-control" rows="2" 
+                                            placeholder="Add any comments about the sample condition..."></textarea>
+                                    </div>
+                                `;
+                            }
+                            samplesList.appendChild(sampleDiv);
+                        });
+                    }
+
+                    // Show/hide the confirmation section based on whether it's a received delivery
+                    const signatureSection = document.querySelector('.signature-section');
+                    if (signatureSection) {
+                        signatureSection.style.display = isReceived ? 'none' : 'block';
+                    }
+
+                    // Update modal footer buttons based on view mode
+                    const modalFooter = document.querySelector('.modal-footer');
+                    if (modalFooter) {
+                        modalFooter.innerHTML = isReceived 
+                            ? '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>'
+                            : `
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="confirmReceiptBtn">Confirm Receipt</button>
+                            `;
+                    }
+
+                    // Show the modal
+                    const receivingModal = document.getElementById('receivingModal');
+                    if (receivingModal) {
+                        const modal = new bootstrap.Modal(receivingModal);
+                        modal.show();
+                    }
+                } catch (error) {
+                    console.error('Error showing receipt details:', error);
+                    showErrorToast('Failed to show receipt details');
+                }
+            };
+
+            // Function to move delivery from expected to received
+            async function moveToReceived(delivery, status, sampleDetails) {
+                try {
+                    // Prepare the delivery data with all required fields
+                    const receivedDelivery = {
+                        batchId: delivery.batchId,
+                        trackingNumber: delivery.trackingNumber,
+                        origin: delivery.origin,
+                        destination: delivery.destination,
+                        expectedSamples: delivery.expectedSamples,
+                        samples: sampleDetails.map(detail => ({
+                            id: detail.id,
+                            type: detail.type,
+                            patientRef: detail.patientRef,
+                            mrn: detail.mrn,
+                            collectionDate: detail.collectionDate,
+                            containerCount: detail.containerCount,
+                            status: detail.status,
+                            comments: detail.comments || ''
+                        })),
+                        status: status,
+                        shippedAt: delivery.shippedAt,
+                        receivedAt: new Date().toISOString(),
+                        createdAt: delivery.createdAt,
+                        expectedDeliveryDate: delivery.expectedDeliveryDate
+                    };
+
+                    // Send to server
+                    const response = await fetch('/api/receiving/receive', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(receivedDelivery)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to save received delivery');
+                    }
+
+                    // Update the received deliveries array
+                    receivedDeliveries.push(receivedDelivery);
+
+                    // Remove from expected deliveries
+                    const index = deliveries.findIndex(d => d.batchId === delivery.batchId);
+                    if (index > -1) {
+                        deliveries.splice(index, 1);
+                    }
+
+                    // Update both tables
+                    await loadReceivedDeliveries();
+                    await loadExpectedDeliveries();
+
+                    // Update KPIs
+                    updateKPIs(status);
+
+                    // Show success toast
+                    showSuccessToast(
+                        'Receipt Confirmed',
+                        `Batch ${delivery.batchId} has been successfully processed.`
+                    );
+
+                } catch (error) {
+                    console.error('Error moving delivery to received:', error);
+                    showErrorToast('Failed to process receipt');
+                    throw error; // Re-throw to be handled by the caller
+                }
             }
 
             // Function to update empty states
@@ -1049,52 +1174,6 @@
                 
                 document.getElementById('receivedEmptyState').style.display = 
                     receivedTable.children.length === 0 ? 'block' : 'none';
-            }
-
-            // Function to show receipt details
-            function showReceiptDetails(batchId, sampleDetails) {
-                const delivery = pendingDeliveries.find(d => d.batchId === batchId) || 
-                                initialReceivedDeliveries.find(d => d.batchId === batchId);
-                if (delivery) {
-                    // Populate modal with shipment details
-                    document.getElementById('modalBatchId').textContent = delivery.batchId;
-                    document.getElementById('modalTrackingNumber').textContent = delivery.trackingNumber;
-                    document.getElementById('modalOrigin').textContent = delivery.origin;
-                    document.getElementById('modalShipDate').textContent = delivery.shipDate;
-                    document.getElementById('modalExpectedSamples').textContent = delivery.expectedSamples;
-                    document.getElementById('modalStatus').textContent = determineShipmentStatus(sampleDetails.map(s => s.status));
-
-                    // Populate samples list with saved statuses and comments
-                    const samplesList = document.getElementById('samplesList');
-                    samplesList.innerHTML = delivery.samples.map((sample, index) => `
-                        <div class="sample-item">
-                            <div class="sample-header">
-                                <div class="sample-info">
-                                    <p><strong>Sample ID:</strong> ${sample.id}</p>
-                                    <p><strong>Type:</strong> ${getSampleTypeBadge(sample.type)}</p>
-                                    <p><strong>Patient Ref:</strong> ${sample.patientRef}</p>
-                                </div>
-                                <div class="sample-status">
-                                    <span class="badge ${sampleDetails[index].status === 'received' ? 'bg-received' : 
-                                                       sampleDetails[index].status === 'missing' ? 'bg-warning' : 
-                                                       'bg-danger'}">
-                                        ${sampleDetails[index].status.charAt(0).toUpperCase() + sampleDetails[index].status.slice(1)}
-                                    </span>
-                                </div>
-                            </div>
-                            ${sampleDetails[index].comments ? `
-                            <div class="comments-section">
-                                <p class="mb-0"><strong>Comments:</strong> ${sampleDetails[index].comments}</p>
-                            </div>
-                            ` : ''}
-                        </div>
-                    `).join('');
-
-                    // Hide confirmation section and buttons for view mode
-                    document.querySelector('.signature-section').style.display = 'none';
-                    
-                    receivingModal.show();
-                }
             }
 
             // Function to update KPIs
@@ -1168,50 +1247,6 @@
                 }, 5000);
             }
 
-            // Update the confirmation button click handler
-            document.getElementById('confirmReceiptBtn').addEventListener('click', function() {
-                // Get all sample statuses
-                const sampleSelects = document.querySelectorAll('#samplesList select');
-                const sampleComments = document.querySelectorAll('#samplesList textarea');
-                const sampleStatuses = [];
-                const sampleDetails = [];
-
-                sampleSelects.forEach((select, index) => {
-                    const status = select.value;
-                    const comments = sampleComments[index].value;
-                    if (status) {
-                        sampleStatuses.push(status);
-                        sampleDetails.push({
-                            status: status,
-                            comments: comments
-                        });
-                    }
-                });
-
-                // Check if all samples have been processed
-                if (sampleStatuses.length !== sampleSelects.length) {
-                    alert('Please select a status for all samples before confirming.');
-                    return;
-                }
-
-                // Determine overall shipment status
-                const overallStatus = determineShipmentStatus(sampleStatuses);
-
-                // Move the delivery to received table
-                const batchId = document.getElementById('modalBatchId').textContent;
-                const delivery = pendingDeliveries.find(d => d.batchId === batchId);
-                
-                if (delivery) {
-                    moveToReceived(delivery, overallStatus, sampleDetails);
-                    updateKPIs(overallStatus);
-                    receivingModal.hide();
-                    showSuccessToast(
-                        'Receipt Processed Successfully',
-                        `Batch ${delivery.batchId} has been received and processed.`
-                    );
-                }
-            });
-
             // Update the sample type display function
             function getSampleTypeBadge(type) {
                 const badges = {
@@ -1233,30 +1268,172 @@
                 return `<span class="sample-type-badge ${badge.class}">${badge.icon} ${type}</span>`;
             }
 
-            // Add the notifyClinic function
-            function notifyClinic(delivery) {
-                // Get the issue details
-                const issues = delivery.samples
-                    .filter(sample => sample.status === 'missing' || sample.status === 'damaged')
-                    .map(sample => `${sample.id} (${sample.status}: ${sample.comments || 'No comments'})`);
+            // Update the notifyClinic function to match alert card format
+            async function notifyClinic(delivery) {
+                try {
+                    // Get the notify button
+                    const notifyBtn = document.querySelector(`.notify-clinic-btn[data-batch-id="${delivery.batchId}"]`);
+                    
+                    // Get the problematic samples with proper formatting
+                    const problematicSamples = delivery.samples
+                        .filter(sample => sample.status === 'missing' || sample.status === 'damaged')
+                        .map(sample => {
+                            const status = sample.status.toLowerCase();
+                            const comments = sample.comments || 'No comments';
+                            return {
+                                id: sample.id,
+                                type: sample.type || 'undefined',
+                                status: status,
+                                comments: comments,
+                                issue: `${status}: ${comments}`
+                            };
+                        });
 
-                // Create notification message
-                const message = `
-                    Notification sent to ${delivery.origin}:
-                    Batch ID: ${delivery.batchId}
-                    Issues Found:
-                    ${issues.join('\n')}
-                `;
+                    // Create issues array for display in alert card
+                    const sampleIssues = problematicSamples.map(sample => ({
+                        sampleId: sample.id,
+                        issue: sample.issue
+                    }));
 
-                // Show success toast
-                showSuccessToast(
-                    'Notification Sent',
-                    `The clinic has been notified about the issues with batch ${delivery.batchId}`
-                );
+                    // Create alert data with proper formatting for alert card
+                    const alertData = {
+                        alertId: `ALT${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+                        type: delivery.status,
+                        batchId: delivery.batchId,
+                        trackingNumber: delivery.trackingNumber,
+                        clinic: delivery.origin.toLowerCase(),
+                        lab: 'Lab A',
+                        description: 'Issues found during lab verification:',
+                        date: new Date().toISOString(),
+                        status: 'Action Required',
+                        samples: problematicSamples.map(sample => ({
+                            id: sample.id,
+                            type: sample.type,
+                            status: sample.status,
+                            comments: sample.comments
+                        })),
+                        issues: sampleIssues,
+                        // Additional metadata for the alert card
+                        meta: {
+                            clinic: delivery.origin,
+                            lab: 'Lab A',
+                            trackingNumber: delivery.trackingNumber,
+                            batchId: delivery.batchId
+                        }
+                    };
 
-                // Log the notification (in a real application, this would send an actual notification)
-                console.log('Notification Details:', message);
+                    console.log('Alert Data being sent:', JSON.stringify(alertData, null, 2));
+
+                    // Send alert to API
+                    const alertResponse = await fetch('/api/alerts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(alertData)
+                    });
+
+                    if (!alertResponse.ok) {
+                        throw new Error('Failed to create alert');
+                    }
+
+                    // Update notification status in the backend
+                    const notifyResponse = await fetch('/api/receiving/notify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ batchId: delivery.batchId })
+                    });
+
+                    if (!notifyResponse.ok) {
+                        throw new Error('Failed to update notification status');
+                    }
+
+                    // Update button state
+                    notifyBtn.innerHTML = '<i class="fas fa-check"></i> Notified';
+                    notifyBtn.classList.remove('btn-notify');
+                    notifyBtn.classList.add('btn-success');
+                    notifyBtn.disabled = true;
+
+                    // Show success toast
+                    showSuccessToast(
+                        'Notification Sent',
+                        `The clinic has been notified about the issues with batch ${delivery.batchId}`
+                    );
+                } catch (error) {
+                    console.error('Error creating alert:', error);
+                    const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                    document.querySelector('#errorToast .toast-body').innerHTML = 
+                        '<i class="fas fa-exclamation-circle me-2"></i>Failed to send notification';
+                    toast.show();
+                }
             }
+
+            // Update the confirmation button click handler
+            document.getElementById('confirmReceiptBtn').addEventListener('click', async function() {
+                try {
+                    // Get all sample statuses and comments
+                    const sampleItems = document.querySelectorAll('#samplesList .sample-item');
+                    const sampleDetails = [];
+                    const sampleStatuses = [];
+
+                    // Get the current batch details
+                    const batchId = document.getElementById('modalBatchId').textContent;
+                    const delivery = deliveries.find(d => d.batchId === batchId);
+                    
+                    if (!delivery) {
+                        throw new Error('Delivery not found');
+                    }
+
+                    // Validate and collect sample data
+                    for (let i = 0; i < sampleItems.length; i++) {
+                        const select = sampleItems[i].querySelector('select');
+                        const textarea = sampleItems[i].querySelector('textarea');
+                        const status = select.value;
+                        const comments = textarea.value.trim();
+                        
+                        if (!status) {
+                            showErrorToast('Please select a status for all samples');
+                            return;
+                        }
+
+                        sampleStatuses.push(status);
+                        sampleDetails.push({
+                            ...delivery.samples[i],
+                            status: status,
+                            comments: comments
+                        });
+                    }
+
+                    // Determine overall shipment status
+                    const overallStatus = determineShipmentStatus(sampleStatuses);
+                    
+                    // Move to received table
+                    await moveToReceived(delivery, overallStatus, sampleDetails);
+                    
+                    // Hide the modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('receivingModal'));
+                    modal.hide();
+
+                    // Remove from deliveries array
+                    const index = deliveries.findIndex(d => d.batchId === batchId);
+                    if (index > -1) {
+                        deliveries.splice(index, 1);
+                    }
+
+                    // Update the expected deliveries count
+                    document.getElementById('expectedDeliveries').textContent = deliveries.length;
+                    document.getElementById('pendingReceipt').textContent = deliveries.length;
+
+                    // Update KPIs
+                    updateKPIs(overallStatus);
+
+                } catch (error) {
+                    console.error('Error confirming receipt:', error);
+                    showErrorToast('Failed to process receipt');
+                }
+            });
         });
     </script>
 </body>
