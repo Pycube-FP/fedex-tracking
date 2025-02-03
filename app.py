@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash, send_from_directory
 import boto3
 import logging
 from collections import defaultdict
@@ -36,6 +36,9 @@ USERS = {
 
 # File to store alerts
 ALERTS_FILE = 'alerts.json'
+
+# Facility management constants
+FACILITIES_FILE = 'facilities.json'
 
 def login_required(f):
     @wraps(f)
@@ -624,8 +627,51 @@ def update_alert(alert_id):
         app.logger.error(f"Error updating alert: {e}")
         return jsonify({"error": "Failed to update alert"}), 500
 
+@app.route('/api/batches', methods=['GET'])
+def get_batches():
+    try:
+        with open('recent_batches.json', 'r') as f:
+            data = json.load(f)
+            return jsonify(data['batches'])
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/batches', methods=['POST'])
+def create_batch():
+    try:
+        new_batch = request.json
+        with open('recent_batches.json', 'r') as f:
+            data = json.load(f)
+        
+        data['batches'].append(new_batch)
+        
+        with open('recent_batches.json', 'w') as f:
+            json.dump(data, f, indent=4)
+        
+        return jsonify({'message': 'Batch created successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/batches/<batch_id>', methods=['PUT'])
+def update_batch(batch_id):
+    try:
+        updated_batch = request.json
+        with open('recent_batches.json', 'r') as f:
+            data = json.load(f)
+        
+        for i, batch in enumerate(data['batches']):
+            if batch['id'] == batch_id:
+                data['batches'][i] = updated_batch
+                break
+        
+        with open('recent_batches.json', 'w') as f:
+            json.dump(data, f, indent=4)
+        
+        return jsonify({'message': 'Batch updated successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api/batches/<batch_id>/ship', methods=['POST'])
-@login_required
 def ship_batch(batch_id):
     try:
         # Get the batch data from request
@@ -645,7 +691,7 @@ def ship_batch(batch_id):
         
         # Save updated expected deliveries
         with open('expected_deliveries.json', 'w') as f:
-            json.dump(expected_deliveries, f)
+            json.dump(expected_deliveries, f, indent=4)
         
         return jsonify({'message': 'Batch shipped successfully'}), 200
         
@@ -653,6 +699,35 @@ def ship_batch(batch_id):
         app.logger.error(f"Error shipping batch: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/expected-deliveries', methods=['POST'])
+def add_expected_delivery():
+    try:
+        data = request.get_json()
+        
+        # Load existing expected deliveries
+        try:
+            with open('expected_deliveries.json', 'r') as f:
+                expected_deliveries = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            expected_deliveries = []
+        
+        # Check if batch already exists
+        if not any(delivery['batchId'] == data['batchId'] for delivery in expected_deliveries):
+            # Add new delivery
+            expected_deliveries.append(data)
+            
+            # Save back to file
+            with open('expected_deliveries.json', 'w') as f:
+                json.dump(expected_deliveries, f, indent=4)
+            
+            return jsonify({'message': 'Delivery added successfully'}), 201
+        else:
+            return jsonify({'message': 'Batch already exists in expected deliveries'}), 200
+            
+    except Exception as e:
+        print(f"Error adding expected delivery: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+    
 @app.route('/api/receiving/expected', methods=['GET'])
 @login_required
 def get_expected_deliveries():
@@ -743,6 +818,176 @@ def update_notification_status():
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+def load_facilities():
+    try:
+        with open(FACILITIES_FILE, 'r') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {"clinics": [], "labs": []}
+
+def save_facilities(facilities):
+    with open(FACILITIES_FILE, 'w') as f:
+        json.dump(facilities, f, indent=4)
+
+@app.route('/facilities')
+@login_required
+def facilities():
+    facilities_data = load_facilities()
+    return render_template('facilities.html', 
+                         clinics=facilities_data['clinics'], 
+                         labs=facilities_data['labs'])
+
+@app.route('/api/facilities', methods=['GET'])
+@login_required
+def get_facilities():
+    return jsonify(load_facilities())
+
+@app.route('/api/facilities', methods=['POST'])
+@login_required
+def add_facility():
+    try:
+        facility = request.json
+        print(f"Received new facility data: {json.dumps(facility, indent=2)}")
+        
+        # Load facilities using the correct path
+        facilities = load_facilities()
+        print(f"Current facilities before adding: {json.dumps(facilities, indent=2)}")
+        
+        # Add the new facility to the appropriate list
+        if facility['type'] == 'clinic':
+            facilities['clinics'].append(facility)
+            print(f"Added new clinic: {json.dumps(facility, indent=2)}")
+        else:
+            facilities['labs'].append(facility)
+            print(f"Added new lab: {json.dumps(facility, indent=2)}")
+            
+        # Save using the correct function
+        save_facilities(facilities)
+        print(f"Facilities saved successfully to {FACILITIES_FILE}")
+            
+        return jsonify(facility), 201
+    except Exception as e:
+        error_msg = f"Error saving facility: {str(e)}"
+        print(error_msg)
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'message': error_msg}), 400
+
+@app.route('/api/facilities/<facility_id>', methods=['GET'])
+@login_required
+def get_facility(facility_id):
+    facilities = load_facilities()
+    facility_type = 'clinics' if facility_id.startswith('C') else 'labs'
+    
+    for facility in facilities[facility_type]:
+        if facility['id'] == facility_id:
+            return jsonify(facility)
+    
+    return jsonify({'error': 'Facility not found'}), 404
+
+@app.route('/api/facilities/<facility_id>', methods=['PUT'])
+@login_required
+def update_facility(facility_id):
+    try:
+        updated_facility = request.json
+        print(f"Updating facility {facility_id} with data: {json.dumps(updated_facility, indent=2)}")
+        
+        # Load facilities using the correct path
+        facilities = load_facilities()
+        print(f"Current facilities before update: {json.dumps(facilities, indent=2)}")
+        
+        # Update in the appropriate list
+        facility_list = facilities['clinics'] if updated_facility['type'] == 'clinic' else facilities['labs']
+        found = False
+        for i, facility in enumerate(facility_list):
+            if facility['facilityId'] == facility_id:
+                facility_list[i] = updated_facility
+                found = True
+                print(f"Updated facility at index {i}")
+                break
+                
+        if not found:
+            error_msg = f"Facility with ID {facility_id} not found"
+            print(error_msg)
+            return jsonify({'message': error_msg}), 404
+        
+        # Save using the correct function
+        save_facilities(facilities)
+        print(f"Facilities saved successfully to {FACILITIES_FILE}")
+            
+        return jsonify(updated_facility)
+    except Exception as e:
+        error_msg = f"Error updating facility: {str(e)}"
+        print(error_msg)
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'message': error_msg}), 400
+
+@app.route('/api/facilities/<facility_id>', methods=['DELETE'])
+@login_required
+def delete_facility(facility_id):
+    try:
+        print(f"Attempting to delete facility {facility_id}")
+        
+        # Load facilities using the correct path
+        facilities = load_facilities()
+        print(f"Current facilities before delete: {json.dumps(facilities, indent=2)}")
+        
+        found = False
+        # Try to find and delete from clinics
+        for i, facility in enumerate(facilities['clinics']):
+            if facility['facilityId'] == facility_id:
+                del facilities['clinics'][i]
+                found = True
+                print(f"Deleted clinic at index {i}")
+                break
+        
+        if not found:
+            # If not found in clinics, try labs
+            for i, facility in enumerate(facilities['labs']):
+                if facility['facilityId'] == facility_id:
+                    del facilities['labs'][i]
+                    found = True
+                    print(f"Deleted lab at index {i}")
+                    break
+                    
+        if not found:
+            error_msg = f"Facility with ID {facility_id} not found"
+            print(error_msg)
+            return jsonify({'message': error_msg}), 404
+        
+        # Save using the correct function
+        save_facilities(facilities)
+        print(f"Facilities saved successfully to {FACILITIES_FILE}")
+            
+        return '', 204
+    except Exception as e:
+        error_msg = f"Error deleting facility: {str(e)}"
+        print(error_msg)
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({'message': error_msg}), 400
+
+@app.route('/api/facilities/list', methods=['GET'])
+def get_facilities_list():
+    try:
+        with open('facilities.json', 'r') as f:
+            facilities = json.load(f)
+            return jsonify({
+                'clinics': facilities['clinics'],
+                'labs': facilities['labs']
+            })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/static/manifest.json')
+def serve_manifest():
+    return send_from_directory('static', 'manifest.json')
+
+@app.route('/static/service-worker.js')
+def serve_service_worker():
+    return send_from_directory('static', 'service-worker.js')
 
 if __name__ == '__main__':
     # Enable debug mode for hot reloading and detailed error messages

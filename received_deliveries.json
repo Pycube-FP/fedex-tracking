@@ -68,5 +68,79 @@
         "createdAt": "1/30/2025, 4:26:59 PM",
         "expectedDeliveryDate": "2025-01-31T21:27:00.704Z",
         "notified": true
+    },
+    {
+        "batchId": "B067727965",
+        "trackingNumber": "774722097751",
+        "origin": "CL001",
+        "destination": "LB002",
+        "expectedSamples": 1,
+        "samples": [
+            {
+                "id": "S001",
+                "type": "Biopsy (Formalin-Fixed)",
+                "patientRef": "P001",
+                "mrn": "M001",
+                "collectionDate": "2025-01-17T14:18",
+                "containerCount": "1",
+                "status": "received",
+                "comments": ""
+            }
+        ],
+        "status": "Received Complete",
+        "shippedAt": "2025-01-31T14:18:28.229388",
+        "receivedAt": "2025-01-31T19:25:37.522Z",
+        "createdAt": "1/31/2025, 2:18:15 PM",
+        "expectedDeliveryDate": "2025-02-01T19:18:28.226Z"
+    },
+    {
+        "batchId": "B650518997",
+        "trackingNumber": "774722097751",
+        "origin": "CL001",
+        "destination": "LB001",
+        "expectedSamples": 1,
+        "samples": [
+            {
+                "id": "S001",
+                "type": "Glass Slides",
+                "patientRef": "P001",
+                "mrn": "M001",
+                "collectionDate": "2025-01-31T14:44",
+                "containerCount": "1",
+                "status": "missing",
+                "comments": ""
+            }
+        ],
+        "status": "Missing Samples",
+        "shippedAt": "2025-01-31T14:44:31.457936",
+        "receivedAt": "2025-01-31T19:44:41.450Z",
+        "createdAt": "1/31/2025, 2:44:27 PM",
+        "expectedDeliveryDate": "2025-02-01T19:44:31.454Z",
+        "notified": true
+    },
+    {
+        "batchId": "B708522017",
+        "trackingNumber": "771801556280",
+        "origin": "CL001",
+        "destination": "LB002",
+        "expectedSamples": 1,
+        "samples": [
+            {
+                "id": "S001",
+                "type": "Biopsy (Formalin-Fixed)",
+                "patientRef": "P001",
+                "mrn": "M001",
+                "collectionDate": "2025-01-31T14:45",
+                "containerCount": "1",
+                "status": "missing",
+                "comments": ""
+            }
+        ],
+        "status": "Missing Samples",
+        "shippedAt": "1/31/2025, 2:45:23 PM",
+        "receivedAt": "2025-02-03T17:33:15.501Z",
+        "createdAt": "1/31/2025, 2:45:23 PM",
+        "expectedDeliveryDate": "2025-02-04T17:28:04.906Z",
+        "notified": true
     }
 ]

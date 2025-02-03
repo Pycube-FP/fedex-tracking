@@ -1,0 +1,46 @@
+{
+    "clinics": [
+        {
+            "type": "clinic",
+            "facilityId": "CL001",
+            "name": "Main Street Clinic",
+            "location": "123 Main St, Boston, MA 02108",
+            "contact": "617-555-0123",
+            "email": "s@p.com"
+        },
+        {
+            "type": "clinic",
+            "facilityId": "CL002",
+            "name": "Downtown Medical Center",
+            "location": "456 Park Ave, New York, NY 10022",
+            "contact": "212-555-0456",
+            "email": "abc@a.com"
+        },
+        {
+            "type": "clinic",
+            "facilityId": "CL003",
+            "name": "Skin Care Hospital Clinic",
+            "location": "123 Drive, Dermat, DM 20011",
+            "contact": "111-111-1111",
+            "email": "s@d.com"
+        }
+    ],
+    "labs": [
+        {
+            "type": "lab",
+            "facilityId": "LB001",
+            "name": "Central Laboratory",
+            "location": "789 Tech Park, San Jose, CA 95110",
+            "contact": "408-555-0789",
+            "email": "w@w.com"
+        },
+        {
+            "type": "lab",
+            "facilityId": "LB002",
+            "name": "Diagnostics Lab",
+            "location": "321 Research Blvd, Austin, TX 78701",
+            "contact": "512-555-0321",
+            "email": "s@g.com"
+        }
+    ]
+}

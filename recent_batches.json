@@ -1,0 +1,124 @@
+{
+    "batches": [
+        {
+            "createdDate": "1/31/2025, 2:45:23 PM",
+            "destination": "LB002",
+            "id": "B708522017",
+            "origin": "CL001",
+            "samples": [
+                {
+                    "addedTime": "1/31/2025, 2:45:22 PM",
+                    "collectionDate": "2025-01-31T14:45",
+                    "containerCount": "1",
+                    "id": "S001",
+                    "mrn": "M001",
+                    "patientRef": "P001",
+                    "type": "Biopsy (Formalin-Fixed)"
+                }
+            ],
+            "staffInitiator": "user",
+            "status": "Out For Delivery",
+            "trackingNumber": "771801556280"
+        },
+        {
+            "createdDate": "1/31/2025, 2:49:23 PM",
+            "destination": "LB002",
+            "id": "B937769304",
+            "origin": "CL001",
+            "samples": [
+                {
+                    "addedTime": "1/31/2025, 2:49:22 PM",
+                    "collectionDate": "2025-01-31T14:49",
+                    "containerCount": "1",
+                    "id": "S001",
+                    "mrn": "M001",
+                    "patientRef": "P001",
+                    "type": "Other"
+                }
+            ],
+            "staffInitiator": "user",
+            "status": "Delivered",
+            "trackingNumber": "771798021351"
+        },
+        {
+            "createdDate": "1/31/2025, 2:52:47 PM",
+            "destination": "LB002",
+            "id": "B153070206",
+            "origin": "CL001",
+            "samples": [
+                {
+                    "addedTime": "1/31/2025, 2:52:46 PM",
+                    "collectionDate": "2025-01-31T14:52",
+                    "containerCount": "1",
+                    "id": "S001",
+                    "mrn": "M001",
+                    "patientRef": "P001",
+                    "type": "Biopsy (Formalin-Fixed)"
+                }
+            ],
+            "staffInitiator": "user",
+            "status": "Shipment Cancelled",
+            "trackingNumber": "771735012959"
+        },
+        {
+            "createdDate": "1/31/2025, 3:30:00 PM",
+            "destination": "LB002",
+            "id": "B386490271",
+            "origin": "CL001",
+            "samples": [
+                {
+                    "addedTime": "1/31/2025, 3:29:59 PM",
+                    "collectionDate": "2025-01-31T15:29",
+                    "containerCount": "1",
+                    "id": "S001",
+                    "mrn": "M001",
+                    "patientRef": "P001",
+                    "type": "Biopsy (Formalin-Fixed)"
+                }
+            ],
+            "staffInitiator": "user",
+            "status": "Delivered",
+            "trackingNumber": "771803066382"
+        },
+        {
+            "createdDate": "2/3/2025, 11:15:17 AM",
+            "destination": "LB002",
+            "id": "B297572362",
+            "origin": "CL001",
+            "samples": [
+                {
+                    "addedTime": "2/3/2025, 11:15:16 AM",
+                    "collectionDate": "2025-02-03T11:15",
+                    "containerCount": "1",
+                    "id": "S001",
+                    "mrn": "M123",
+                    "patientRef": "P005",
+                    "type": "Biopsy (Formalin-Fixed)"
+                }
+            ],
+            "staffInitiator": "user",
+            "status": "Shipment Created",
+            "trackingNumber": "771836459979"
+        },
+        {
+            "id": "B533463179",
+            "staffInitiator": "user",
+            "trackingNumber": "",
+            "origin": "CL003",
+            "destination": "LB001",
+            "samples": [
+                {
+                    "id": "S0123",
+                    "type": "Other",
+                    "patientRef": "P0012",
+                    "mrn": "M987",
+                    "collectionDate": "2025-02-03T11:19",
+                    "containerCount": "1",
+                    "addedTime": "2/3/2025, 11:19:10 AM"
+                }
+            ],
+            "createdDate": "2/3/2025, 11:19:13 AM",
+            "status": "Pending"
+        }
+    ]
+}

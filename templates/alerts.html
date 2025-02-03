@@ -484,44 +484,8 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="/static/pycube-logo.png" alt="Pycube">
-        </div>
-        <nav class="main-nav">
-            <a href="/batching" class="nav-link">Batching</a>
-            <a href="/" class="nav-link">Shipments</a>
-            <a href="/receiving" class="nav-link">Receiving</a>
-            <a href="/analytics" class="nav-link">Analytics</a>
-            <a href="/alerts" class="nav-link active">Alerts</a>
-        </nav>
-        <div class="user-info">
-            {% if 'username' in session %}
-            <div class="user-profile-dropdown">
-                <div class="user-profile-trigger">
-                    <img src="/static/profile.jpg" alt="Profile" class="profile-image">
-                    <div class="user-details">
-                        <div class="user-name">{{ session['username'] }}</div>
-                        <div class="user-role">Clinic Manager</div>
-                    </div>
-                </div>
-                <div class="dropdown-menu">
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-user"></i>
-                        User Profile
-                    </a>
-                    <a href="{{ url_for('logout') }}" class="dropdown-item">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Log Out
-                    </a>
-                </div>
-            </div>
-            {% else %}
-            <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-            {% endif %}
-        </div>
-    </header>
-
+    {% include 'header.html' %}
+    
     <main>
         <div class="container-wrapper">
             <!-- KPI Section -->
@@ -993,18 +957,6 @@
 
             // Load alerts when page loads
             loadAlerts();
-
-            const profileTrigger = document.querySelector('.user-profile-trigger');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-            
-            profileTrigger?.addEventListener('click', function(e) {
-                e.stopPropagation();
-                dropdownMenu.classList.toggle('show');
-            });
-            
-            document.addEventListener('click', function() {
-                dropdownMenu?.classList.remove('show');
-            });
 
             // Add click handlers for Take Action buttons
             document.querySelectorAll('.alert-card').forEach(card => {

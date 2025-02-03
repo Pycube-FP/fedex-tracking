@@ -499,47 +499,99 @@
         .btn-close-white {
             filter: brightness(0) invert(1);
         }
+        /* Status Badge Styles */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .bg-out-for-delivery {
+            background-color: #fff3cd !important;
+            color: #997404 !important;
+            border: none !important;
+        }
+
+        .bg-delivered {
+            background-color: #d1e7dd !important;
+            color: #0f5132 !important;
+            border: none !important;
+        }
+
+        .bg-shipment-cancelled {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+            border: none !important;
+        }
+
+        .bg-shipment-created {
+            background-color: #e9ecef !important;
+            color: #495057 !important;
+            border: none !important;
+        }
+
+        .bg-pending {
+            background-color: #fff3cd !important;
+            color: #997404 !important;
+            border: none !important;
+        }
+
+        .bg-in-transit {
+            background-color: #fff3cd !important;
+            color: #997404 !important;
+            border: none !important;
+        }
+
+        .bg-received-complete {
+            background-color: #d1e7dd !important;
+            color: #0f5132 !important;
+            border: none !important;
+        }
+
+        .bg-missing-samples {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+            border: none !important;
+        }
+
+        .bg-damaged-samples {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+            border: none !important;
+        }
+
+        .bg-multiple-issues {
+            background-color: #f8d7da !important;
+            color: #842029 !important;
+            border: none !important;
+        }
+
+        /* Modal Status Badge Styles */
+        .modal-body .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        .modal-body .sample-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-body .status-select {
+            min-width: 140px;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <img src="/static/pycube-logo.png" alt="Pycube">
-        </div>
-        <nav class="main-nav">
-            <a href="/batching" class="nav-link">Batching</a>
-            <a href="/" class="nav-link">Shipments</a>
-            <a href="/receiving" class="nav-link active">Receiving</a>
-            <a href="/analytics" class="nav-link">Analytics</a>
-            <a href="/alerts" class="nav-link">Alerts</a>
-        </nav>
-        <div class="user-info">
-            {% if 'username' in session %}
-            <div class="user-profile-dropdown">
-                <div class="user-profile-trigger">
-                    <img src="/static/profile.jpg" alt="Profile" class="profile-image">
-                    <div class="user-details">
-                        <div class="user-name">{{ session['username'] }}</div>
-                        <div class="user-role">Lab Technician</div>
-                    </div>
-                </div>
-                <div class="dropdown-menu">
-                    <a href="#" class="dropdown-item">
-                        <i class="fas fa-user"></i>
-                        User Profile
-                    </a>
-                    <a href="{{ url_for('logout') }}" class="dropdown-item">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Log Out
-                    </a>
-                </div>
-            </div>
-            {% else %}
-            <a href="{{ url_for('login') }}" class="nav-link">Login</a>
-            {% endif %}
-        </div>
-    </header>
-
+    {% include 'header.html' %}
     <main>
         <div class="container-wrapper">
             <!-- KPI Section -->
@@ -771,13 +823,14 @@
                     // Add each delivery to the table
                     deliveries.forEach(delivery => {
                         const row = document.createElement('tr');
+                        const statusClass = `bg-${delivery.status.toLowerCase().replace(/\s+/g, '-')}`;
                         row.innerHTML = `
                             <td>${delivery.batchId}</td>
                             <td>${delivery.trackingNumber}</td>
                             <td>${delivery.origin}</td>
                             <td>${delivery.expectedSamples}</td>
                             <td>${new Date(delivery.shippedAt).toLocaleString()}</td>
-                            <td><span class="badge bg-in-transit">In Transit</span></td>
+                            <td><span class="badge ${statusClass}">${delivery.status}</span></td>
                             <td>
                                 <button class="btn btn-sm btn-info receive-btn">
                                     <i class="fas fa-clipboard-check"></i> Receive
@@ -928,7 +981,7 @@
                             <td>${delivery.origin}</td>
                             <td>${delivery.expectedSamples}</td>
                             <td>${new Date(delivery.receivedAt).toLocaleString()}</td>
-                            <td>${getStatusBadgeHTML(delivery.status)}</td>
+                            <td><span class="badge bg-${delivery.status.toLowerCase().replace(/\s+/g, '-')}">${delivery.status}</span></td>
                             <td>
                                 <button type="button" class="btn btn-info btn-sm view-details-btn" data-batch-id="${delivery.batchId}">
                                     <i class="fas fa-eye"></i> View Details
@@ -1010,7 +1063,10 @@
                     if (modalOrigin) modalOrigin.textContent = delivery.origin;
                     if (modalShipDate) modalShipDate.textContent = new Date(delivery.shippedAt).toLocaleString();
                     if (modalExpectedSamples) modalExpectedSamples.textContent = delivery.expectedSamples;
-                    if (modalStatus) modalStatus.innerHTML = getStatusBadgeHTML(delivery.status || 'In Transit');
+                    if (modalStatus) {
+                        const statusClass = `bg-${delivery.status.toLowerCase().replace(/\s+/g, '-')}`;
+                        modalStatus.innerHTML = `<span class="badge ${statusClass}">${delivery.status}</span>`;
+                    }
                     
                     // Clear and update samples list
                     const samplesList = document.getElementById('samplesList');
@@ -1023,6 +1079,7 @@
                             
                             if (isReceived) {
                                 // For received deliveries, show the final status and comments
+                                const sampleStatusClass = `bg-${sample.status.toLowerCase().replace(/\s+/g, '-')}`;
                                 sampleDiv.innerHTML = `
                                     <div class="sample-header">
                                         <div>
@@ -1030,7 +1087,7 @@
                                             ${getSampleTypeBadge(sample.type || 'undefined')}
                                         </div>
                                         <div class="sample-status">
-                                            <span class="badge ${getStatusBadgeClass(sample.status)}">${sample.status}</span>
+                                            <span class="badge ${sampleStatusClass}">${sample.status}</span>
                                         </div>
                                     </div>
                                     ${sample.comments ? `
@@ -1048,7 +1105,7 @@
                                             ${getSampleTypeBadge(sample.type || 'undefined')}
                                         </div>
                                         <div class="sample-status">
-                                            <select class="form-select form-select-sm" required>
+                                            <select class="form-select form-select-sm status-select" required>
                                                 <option value="">Select Status</option>
                                                 <option value="received">Received</option>
                                                 <option value="missing">Missing</option>
@@ -1061,6 +1118,23 @@
                                             placeholder="Add any comments about the sample condition..."></textarea>
                                     </div>
                                 `;
+
+                                // Add change listener to update badge style on status change
+                                const select = sampleDiv.querySelector('.status-select');
+                                select.addEventListener('change', function() {
+                                    const status = this.value;
+                                    const statusBadge = document.createElement('span');
+                                    statusBadge.className = `badge bg-${status.toLowerCase().replace(/\s+/g, '-')}`;
+                                    statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                                    
+                                    const existingBadge = this.parentElement.querySelector('.badge');
+                                    if (existingBadge) {
+                                        existingBadge.remove();
+                                    }
+                                    if (status) {
+                                        this.parentElement.appendChild(statusBadge);
+                                    }
+                                });
                             }
                             samplesList.appendChild(sampleDiv);
                         });

@@ -1,43 +1,105 @@
 [
-    {
-        "alertId": "ALT0473",
-        "type": "Missing Samples",
-        "batchId": "B394394913",
-        "trackingNumber": "774722097751",
-        "clinic": "clinic1",
-        "lab": "Lab A",
-        "description": "Issues found during lab verification:",
-        "date": "2025-01-30T21:42:47.462Z",
-        "status": "Action Required",
-        "samples": [
-          {
-            "id": "S001",
-            "type": "Biopsy (Formalin-Fixed)",
-            "status": "missing",
-            "comments": "No comments"
-          },
-          {
-            "id": "S002",
-            "type": "Glass Slides",
-            "status": "missing",
-            "comments": "No comments"
-          }
-        ],
-        "issues": [
-          {
-            "sampleId": "S001",
-            "issue": "missing: No comments"
-          },
-          {
-            "sampleId": "S002",
-            "issue": "missing: No comments"
-          }
-        ],
-        "meta": {
-          "clinic": "clinic1",
-          "lab": "Lab A",
-          "trackingNumber": "774722097751",
-          "batchId": "B394394913"
-        }
+  {
+    "alertId": "ALT0473",
+    "type": "Missing Samples",
+    "batchId": "B394394913",
+    "trackingNumber": "774722097751",
+    "clinic": "clinic1",
+    "lab": "Lab A",
+    "description": "Issues found during lab verification:",
+    "date": "2025-01-30T21:42:47.462Z",
+    "status": "Action Required",
+    "samples": [
+      {
+        "id": "S001",
+        "type": "Biopsy (Formalin-Fixed)",
+        "status": "missing",
+        "comments": "No comments"
+      },
+      {
+        "id": "S002",
+        "type": "Glass Slides",
+        "status": "missing",
+        "comments": "No comments"
       }
+    ],
+    "issues": [
+      {
+        "sampleId": "S001",
+        "issue": "missing: No comments"
+      },
+      {
+        "sampleId": "S002",
+        "issue": "missing: No comments"
+      }
+    ],
+    "meta": {
+      "clinic": "clinic1",
+      "lab": "Lab A",
+      "trackingNumber": "774722097751",
+      "batchId": "B394394913"
+    }
+  },
+  {
+    "alertId": "ALT3676",
+    "type": "Missing Samples",
+    "batchId": "B650518997",
+    "trackingNumber": "774722097751",
+    "clinic": "cl001",
+    "lab": "Lab A",
+    "description": "Issues found during lab verification:",
+    "date": "2025-01-31T19:44:48.546Z",
+    "status": "Action Required",
+    "samples": [
+      {
+        "id": "S001",
+        "type": "Glass Slides",
+        "status": "missing",
+        "comments": "No comments"
+      }
+    ],
+    "issues": [
+      {
+        "sampleId": "S001",
+        "issue": "missing: No comments"
+      }
+    ],
+    "meta": {
+      "clinic": "CL001",
+      "lab": "Lab A",
+      "trackingNumber": "774722097751",
+      "batchId": "B650518997"
+    }
+  },
+  {
+    "alertId": "ALT4134",
+    "type": "Missing Samples",
+    "batchId": "B708522017",
+    "trackingNumber": "771801556280",
+    "clinic": "cl001",
+    "lab": "Lab A",
+    "description": "Issues found during lab verification:",
+    "date": "2025-02-03T17:33:23.939Z",
+    "status": "Action Required",
+    "samples": [
+      {
+        "id": "S001",
+        "type": "Biopsy (Formalin-Fixed)",
+        "status": "missing",
+        "comments": "No comments"
+      }
+    ],
+    "issues": [
+      {
+        "sampleId": "S001",
+        "issue": "missing: No comments"
+      }
+    ],
+    "meta": {
+      "clinic": "CL001",
+      "lab": "Lab A",
+      "trackingNumber": "771801556280",
+      "batchId": "B708522017"
+    }
+  }
 ]
