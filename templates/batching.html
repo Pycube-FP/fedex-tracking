@@ -554,6 +554,37 @@
         .modal-body .status-in-transit {
             margin-left: 0;
         }
+
+        .sample-photo-preview {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 2px solid #e0e0e0;
+            display: none;
+        }
+
+        .photo-upload-container {
+            margin-top: 10px;
+        }
+
+        .photo-upload-container label {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload-container label:hover {
+            background-color: #e9ecef;
+        }
+
+        .photo-upload-container input[type="file"] {
+            display: none;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -684,6 +715,16 @@
                                                     </button>
                                                 </div>
                                             </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label">Sample Photo</label>
+                                                <div class="photo-upload-container">
+                                                    <label for="samplePhoto">
+                                                        <i class="fas fa-camera"></i> Upload Photo
+                                                    </label>
+                                                    <input type="file" id="samplePhoto" accept="image/*" capture="environment">
+                                                    <img id="photoPreview" class="sample-photo-preview" alt="Sample photo preview">
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="sample-list">
@@ -696,6 +737,7 @@
                                                     <th>MRN</th>
                                                     <th>Collection Date</th>
                                                     <th>Containers</th>
+                                                    <th>Photo</th>
                                                     <th>Added Time</th>
                                                     <th>Actions</th>
                                                 </tr>
@@ -810,6 +852,7 @@
                                         <th>MRN</th>
                                         <th>Collection Date</th>
                                         <th>Containers</th>
+                                        <th>Photo</th>
                                         <th>Added Time</th>
                                     </tr>
                                 </thead>
@@ -1155,47 +1198,54 @@
                 if (expectedDeliveryStatuses.includes(batch.status)) {
                     console.log(`Batch ${batch.id} has status ${batch.status}, adding to expected deliveries...`);
                     try {
-                        // Format the data for expected deliveries
-                        const expectedDeliveryData = {
-                            batchId: batch.id,
-                            trackingNumber: batch.trackingNumber,
-                            origin: batch.origin,
-                            destination: batch.destination,
-                            expectedSamples: batch.samples.length,
-                            samples: batch.samples.map(sample => ({
-                                id: sample.id,
-                                type: sample.type,
-                                patientRef: sample.patientRef || '-',
-                                mrn: sample.mrn || '-',
-                                collectionDate: sample.collectionDate || new Date().toISOString().split('T')[0],
-                                containerCount: sample.containerCount || '1',
-                                addedTime: sample.addedTime || new Date().toLocaleString(),
-                                status: 'pending'
-                            })),
-                            createdAt: batch.createdDate || new Date().toLocaleString(),
-                            status: batch.status,
-                            expectedDeliveryDate: new Date(Date.now() + 24*60*60*1000).toISOString(),
-                            shippedAt: batch.createdDate || new Date().toLocaleString()
-                        };
+                        // Check if batch already exists in expected deliveries
+                        const checkResponse = await fetch(`/api/expected-deliveries/${batch.id}`);
+                        if (checkResponse.ok) {
+                            // Batch exists, update its status if needed
+                            const existingDelivery = await checkResponse.json();
+                            if (existingDelivery.status !== batch.status) {
+                                const updateResponse = await fetch(`/api/expected-deliveries/${batch.id}`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ status: batch.status })
+                                });
+                                if (!updateResponse.ok) {
+                                    throw new Error('Failed to update expected delivery status');
+                                }
+                            }
+                        } else {
+                            // Format the data for new expected delivery
+                            const expectedDeliveryData = {
+                                batchId: batch.id,
+                                trackingNumber: batch.trackingNumber,
+                                origin: batch.origin,
+                                destination: batch.destination,
+                                expectedSamples: batch.samples.length,
+                                samples: batch.samples,
+                                status: batch.status,
+                                expectedDeliveryDate: new Date(Date.now() + 24*60*60*1000).toISOString(),
+                                shippedAt: new Date().toISOString(),
+                                createdAt: batch.createdDate
+                            };
 
-                        console.log('Sending data to expected deliveries:', expectedDeliveryData);
+                            // Add to expected deliveries
+                            const addToExpectedResponse = await fetch('/api/expected-deliveries', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(expectedDeliveryData)
+                            });
 
-                        // Add to expected deliveries
-                        const addToExpectedResponse = await fetch('/api/expected-deliveries', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(expectedDeliveryData)
-                        });
-
-                        if (!addToExpectedResponse.ok) {
-                            throw new Error('Failed to add batch to expected deliveries');
+                            if (!addToExpectedResponse.ok) {
+                                throw new Error('Failed to add batch to expected deliveries');
+                            }
                         }
-
-                        console.log('Successfully added batch to expected deliveries:', batch.id);
+                        console.log('Successfully processed batch in expected deliveries:', batch.id);
                     } catch (error) {
-                        console.error('Error adding batch to expected deliveries:', error);
+                        console.error('Error processing batch in expected deliveries:', error);
                     }
                 }
             });
@@ -1234,49 +1284,53 @@
                                     statusCell.innerHTML = `<span class="status-badge ${getStatusColor(batch.status)}">${batch.status}</span>`;
                                 }
 
-                                // Check if the new status requires adding to expected deliveries
+                                // Check if the new status requires adding/updating in expected deliveries
                                 if (expectedDeliveryStatuses.includes(latestEvent)) {
-                                    // Format the data for expected deliveries
-                                    const expectedDeliveryData = {
-                                        batchId: batch.id,
-                                        trackingNumber: batch.trackingNumber,
-                                        origin: batch.origin,
-                                        destination: batch.destination,
-                                        expectedSamples: batch.samples.length,
-                                        samples: batch.samples.map(sample => ({
-                                            id: sample.id,
-                                            type: sample.type,
-                                            patientRef: sample.patientRef || '-',
-                                            mrn: sample.mrn || '-',
-                                            collectionDate: sample.collectionDate || new Date().toISOString().split('T')[0],
-                                            containerCount: sample.containerCount || '1',
-                                            addedTime: sample.addedTime || new Date().toLocaleString(),
-                                            status: 'pending'
-                                        })),
-                                        createdAt: batch.createdDate || new Date().toLocaleString(),
-                                        status: latestEvent,
-                                        expectedDeliveryDate: timelineData['Delivered']?.timestamp || 
-                                            new Date(Date.now() + 24*60*60*1000).toISOString(),
-                                        shippedAt: timelineData['Shipment Picked Up']?.timestamp || new Date().toISOString()
-                                    };
-
-                                    // Add to expected deliveries
                                     try {
-                                        const addToExpectedResponse = await fetch('/api/expected-deliveries', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json'
-                                            },
-                                            body: JSON.stringify(expectedDeliveryData)
-                                        });
-
-                                        if (!addToExpectedResponse.ok) {
-                                            console.error('Failed to add batch to expected deliveries:', batch.id);
+                                        // Check if batch already exists in expected deliveries
+                                        const checkResponse = await fetch(`/api/expected-deliveries/${batch.id}`);
+                                        if (checkResponse.ok) {
+                                            // Update existing expected delivery
+                                            const updateResponse = await fetch(`/api/expected-deliveries/${batch.id}`, {
+                                                method: 'PUT',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({ status: latestEvent })
+                                            });
+                                            if (!updateResponse.ok) {
+                                                throw new Error('Failed to update expected delivery status');
+                                            }
                                         } else {
-                                            console.log('Successfully added batch to expected deliveries:', batch.id);
+                                            // Add new expected delivery
+                                            const expectedDeliveryData = {
+                                                batchId: batch.id,
+                                                trackingNumber: batch.trackingNumber,
+                                                origin: batch.origin,
+                                                destination: batch.destination,
+                                                expectedSamples: batch.samples.length,
+                                                samples: batch.samples,
+                                                status: latestEvent,
+                                                expectedDeliveryDate: timelineData['Delivered']?.timestamp || 
+                                                    new Date(Date.now() + 24*60*60*1000).toISOString(),
+                                                shippedAt: timelineData['Shipment Picked Up']?.timestamp || new Date().toISOString(),
+                                                createdAt: batch.createdDate
+                                            };
+
+                                            const addToExpectedResponse = await fetch('/api/expected-deliveries', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify(expectedDeliveryData)
+                                            });
+
+                                            if (!addToExpectedResponse.ok) {
+                                                throw new Error('Failed to add batch to expected deliveries');
+                                            }
                                         }
                                     } catch (error) {
-                                        console.error('Error adding to expected deliveries:', error);
+                                        console.error('Error processing expected delivery:', error);
                                     }
                                 }
 
@@ -1400,11 +1454,13 @@
                     mrn: mrn,
                     collectionDate: collectionDate,
                     containerCount: containerCount,
-                    addedTime: new Date().toLocaleString()
+                    addedTime: new Date().toLocaleString(),
+                    photo: photoPreview.style.display === 'block' ? photoPreview.src : null
                 };
 
                 samples.push(sample);
                 updateSampleTable();
+                
                 // Clear input fields
                 sampleIdInput.value = '';
                 sampleTypeSelect.value = '';
@@ -1412,6 +1468,9 @@
                 document.getElementById('mrn').value = '';
                 document.getElementById('collectionDate').value = '';
                 document.getElementById('containerCount').value = '1';
+                photoPreview.src = '';
+                photoPreview.style.display = 'none';
+                samplePhotoInput.value = '';
                 updateTotalSamples();
             });
 
@@ -1444,6 +1503,7 @@
                         <td>${sample.mrn || '-'}</td>
                         <td>${formatDate(sample.collectionDate)}</td>
                         <td>${sample.containerCount}</td>
+                        <td>${sample.photo ? '<img src="' + sample.photo + '" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">' : '-'}</td>
                         <td>${sample.addedTime}</td>
                         <td>
                             <button class="btn btn-sm btn-danger" onclick="removeSample('${sample.id}')">
@@ -1635,6 +1695,7 @@
                             <td>${sample.mrn || '-'}</td>
                             <td>${formatDate(sample.collectionDate)}</td>
                             <td>${sample.containerCount}</td>
+                            <td>${sample.photo ? '<img src="' + sample.photo + '" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">' : '-'}</td>
                             <td>${sample.addedTime}</td>
                         </tr>
                     `).join('');
@@ -2066,6 +2127,29 @@
                     html5QrcodeScanner = null;
                 }
             });
+
+            // Initialize photo upload handling
+            const samplePhotoInput = document.getElementById('samplePhoto');
+            const photoPreview = document.getElementById('photoPreview');
+
+            samplePhotoInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        photoPreview.src = e.target.result;
+                        photoPreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Generate a random batch ID
+            function generateBatchId() {
+                const timestamp = new Date().getTime().toString().slice(-6);
+                const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                return `B${timestamp}${random}`;
+            }
         });
     </script>
     <!-- Service Worker Registration -->

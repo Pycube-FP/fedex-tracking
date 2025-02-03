@@ -989,6 +989,42 @@ def serve_manifest():
 def serve_service_worker():
     return send_from_directory('static', 'service-worker.js')
 
+@app.route('/api/expected-deliveries/<batch_id>', methods=['GET', 'PUT'])
+def manage_expected_delivery(batch_id):
+    try:
+        # Load existing expected deliveries
+        with open('expected_deliveries.json', 'r') as f:
+            expected_deliveries = json.load(f)
+        
+        if request.method == 'GET':
+            # Find the delivery with matching batch_id
+            delivery = next((d for d in expected_deliveries if d['batchId'] == batch_id), None)
+            if delivery:
+                return jsonify(delivery), 200
+            else:
+                return jsonify({'error': 'Delivery not found'}), 404
+                
+        elif request.method == 'PUT':
+            data = request.get_json()
+            
+            # Find and update the delivery
+            for delivery in expected_deliveries:
+                if delivery['batchId'] == batch_id:
+                    # Update only the status field
+                    delivery['status'] = data['status']
+                    
+                    # Save the updated deliveries back to file
+                    with open('expected_deliveries.json', 'w') as f:
+                        json.dump(expected_deliveries, f, indent=4)
+                    
+                    return jsonify({'message': 'Delivery updated successfully'}), 200
+            
+            return jsonify({'error': 'Delivery not found'}), 404
+            
+    except Exception as e:
+        app.logger.error(f"Error managing expected delivery: {e}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     # Enable debug mode for hot reloading and detailed error messages
     app.debug = True
