@@ -26,6 +26,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <style>
         .kpi-container {
             width: 80%;
@@ -2066,6 +2067,30 @@
                     html5QrcodeScanner = null;
                 }
             });
+        });
+
+        // Initialize Socket.IO connection
+        const socket = io();
+
+        // Handle incoming scan events
+        socket.on('scan_event', function(data) {
+            // Update the sample ID input field
+            document.getElementById('sampleId').value = data.sampleId;
+            
+            // Show success toast
+            const toast = new bootstrap.Toast(document.getElementById('scanSuccessToast'));
+            document.querySelector('#scanSuccessToast .toast-body').textContent = 
+                `Sample ${data.sampleId} scanned successfully!`;
+            toast.show();
+        });
+
+        // Socket connection status handlers
+        socket.on('connect', () => {
+            console.log('Desktop connected to WebSocket server');
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('WebSocket connection error:', error);
         });
     </script>
     <!-- Service Worker Registration -->

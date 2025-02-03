@@ -7,11 +7,13 @@ from functools import wraps
 import os
 from dotenv import load_dotenv
 import json
+from flask_socketio import SocketIO, emit
 
 load_dotenv()  # Load environment variables from .env file
 
 app = Flask('FedEx Tracking')
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Initialize a session using Amazon DynamoDB
 boto3_session = boto3.Session(
@@ -989,7 +991,24 @@ def serve_manifest():
 def serve_service_worker():
     return send_from_directory('static', 'service-worker.js')
 
+@app.route('/mobile')
+def mobile_scanner():
+    return render_template('mobile_scanner.html')
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('Client disconnected')
+
+@socketio.on('scan_event')
+def handle_scan(data):
+    # Broadcast the scanned data to all connected clients except the sender
+    emit('scan_event', data, broadcast=True, include_self=False)
+
 if __name__ == '__main__':
     # Enable debug mode for hot reloading and detailed error messages
     app.debug = True
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True) 

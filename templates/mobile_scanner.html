@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .scan-container {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 600px;
+        }
+        .camera-button {
+            background: #34495e;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            margin: 20px 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .camera-button i {
+            font-size: 1.5rem;
+        }
+        #reader {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .success-alert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .last-scan {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 600px;
+            display: none;
+        }
+        .stop-scanning {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="scan-container">
+        <h4 class="mb-4">Barcode Scanner</h4>
+        <button id="startCamera" class="camera-button">
+            <i class="fas fa-camera"></i>
+            Start Scanning
+        </button>
+    </div>
+
+    <div id="reader"></div>
+    <button id="stopScanning" class="stop-scanning">Stop Scanning</button>
+
+    <div class="last-scan">
+        <h5>Last Scanned:</h5>
+        <p id="lastScanned">No barcode scanned yet</p>
+    </div>
+
+    <div class="alert alert-success success-alert" role="alert">
+        Barcode scanned successfully!
+    </div>
+
+    <script>
+        let html5QrcodeScanner = null;
+        const socket = io();
+        
+        document.getElementById('startCamera').addEventListener('click', async function() {
+            try {
+                this.style.display = 'none';
+                document.getElementById('reader').style.display = 'block';
+                document.getElementById('stopScanning').style.display = 'block';
+                document.querySelector('.last-scan').style.display = 'block';
+
+                // Create new HTML5 QR code scanner
+                const html5QrCode = new Html5Qrcode("reader");
+                const cameras = await Html5Qrcode.getCameras();
+                
+                if (cameras && cameras.length) {
+                    // Prefer back camera
+                    const camera = cameras.find(camera => camera.label.toLowerCase().includes('back')) || cameras[0];
+                    
+                    await html5QrCode.start(
+                        camera.id,
+                        {
+                            fps: 10,
+                            qrbox: { width: 250, height: 250 }
+                        },
+                        onScanSuccess,
+                        onScanFailure
+                    );
+                    
+                    // Store scanner instance for cleanup
+                    html5QrcodeScanner = html5QrCode;
+                } else {
+                    alert('No cameras found on your device');
+                    this.style.display = 'flex';
+                    document.getElementById('reader').style.display = 'none';
+                    document.getElementById('stopScanning').style.display = 'none';
+                }
+            } catch (err) {
+                console.error('Error starting camera:', err);
+                alert('Error starting camera. Please make sure you have given camera permissions.');
+                this.style.display = 'flex';
+                document.getElementById('reader').style.display = 'none';
+                document.getElementById('stopScanning').style.display = 'none';
+            }
+        });
+
+        document.getElementById('stopScanning').addEventListener('click', async function() {
+            if (html5QrcodeScanner) {
+                try {
+                    await html5QrcodeScanner.stop();
+                    html5QrcodeScanner = null;
+                } catch (err) {
+                    console.error('Error stopping camera:', err);
+                }
+            }
+            document.getElementById('reader').style.display = 'none';
+            this.style.display = 'none';
+            document.getElementById('startCamera').style.display = 'flex';
+        });
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Update last scanned text
+            document.getElementById('lastScanned').textContent = decodedText;
+            
+            // Show success alert
+            const alert = document.querySelector('.success-alert');
+            alert.style.display = 'block';
+            alert.textContent = `Scanned: ${decodedText}`;
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 2000);
+
+            // Emit the scanned data to the server
+            socket.emit('scan_event', {
+                sampleId: decodedText,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function onScanFailure(error) {
+            // Only log failures that aren't normal "no QR code found" errors
+            if (error !== 'No QR code found') {
+                console.warn(`Scan error: ${error}`);
+            }
+        }
+
+        // Socket connection status handlers
+        socket.on('connect', () => {
+            console.log('Connected to WebSocket server');
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('WebSocket connection error:', error);
+        });
+    </script>
+</body>
+</html> 
