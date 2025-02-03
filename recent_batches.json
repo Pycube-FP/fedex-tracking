@@ -119,6 +119,27 @@
             ],
             "createdDate": "2/3/2025, 11:19:13 AM",
             "status": "Pending"
+        },
+        {
+            "id": "B958453415",
+            "staffInitiator": "user",
+            "trackingNumber": "",
+            "origin": "CL001",
+            "destination": "LB002",
+            "samples": [
+                {
+                    "id": "S132",
+                    "type": "Glass Slides",
+                    "patientRef": "P123",
+                    "mrn": "M123",
+                    "collectionDate": "2025-02-01T16:43",
+                    "containerCount": "1",
+                    "addedTime": "2/3/2025, 4:43:14 PM",
+                    "photo": null
+                }
+            ],
+            "createdDate": "2/3/2025, 4:43:15 PM",
+            "status": "Pending"
         }
     ]
 }

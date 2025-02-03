@@ -525,7 +525,61 @@
                     </div>
                 </div>
                 <div class="alerts-grid">
-                    <!-- Cards will be moved here when action is taken -->
+                    <!-- Sample Alert for Stale Pending Batch -->
+                    <div class="alert-card" data-alert-id="ALT7H2K">
+                        <div class="alert-header">
+                            <span class="alert-id">ALT7H2K</span>
+                            <span class="badge bg-warning">Stale Pending</span>
+                            <span class="alert-date">Feb 15, 2024 09:30 AM</span>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-description">
+                                Batch has been in pending status for more than 24 hours
+                            </div>
+                            <div class="alert-meta">
+                                <span><i class="fas fa-box"></i> B386490271</span>
+                                <span><i class="fas fa-hospital"></i> Clinic A</span>
+                                <span><i class="fas fa-flask"></i> Lab X</span>
+                                <span><i class="fas fa-truck"></i> Pending Assignment</span>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <span class="alert-status action-required">
+                                <i class="fas fa-exclamation-circle"></i> Action Required
+                            </span>
+                            <button class="btn btn-primary btn-sm" onclick="takeAction('ALT7H2K')">
+                                Take Action
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sample Alert for Delayed Shipment -->
+                    <div class="alert-card" data-alert-id="ALT9P4M">
+                        <div class="alert-header">
+                            <span class="alert-id">ALT9P4M</span>
+                            <span class="badge bg-warning">Shipment Delayed</span>
+                            <span class="alert-date">Feb 15, 2024 10:15 AM</span>
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-description">
+                                Shipment has been delayed in transit
+                            </div>
+                            <div class="alert-meta">
+                                <span><i class="fas fa-box"></i> B937769304</span>
+                                <span><i class="fas fa-hospital"></i> Clinic B</span>
+                                <span><i class="fas fa-flask"></i> Lab Y</span>
+                                <span><i class="fas fa-truck"></i> 123456789012</span>
+                            </div>
+                        </div>
+                        <div class="alert-actions">
+                            <span class="alert-status action-required">
+                                <i class="fas fa-exclamation-circle"></i> Action Required
+                            </span>
+                            <button class="btn btn-primary btn-sm" onclick="takeAction('ALT9P4M')">
+                                Take Action
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -569,6 +623,29 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Sample Notification for Stale Pending -->
+                            <tr>
+                                <td>NOT002</td>
+                                <td>Feb 15, 2024 09:30 AM</td>
+                                <td><span class="badge bg-warning">Stale Pending</span></td>
+                                <td>B386490271</td>
+                                <td>Clinic A</td>
+                                <td>Lab X</td>
+                                <td class="text-start">Batch has been in pending status for more than 24 hours</td>
+                                <td><span class="badge bg-danger">Action Required</span></td>
+                            </tr>
+                            <!-- Sample Notification for Delayed Shipment -->
+                            <tr>
+                                <td>NOT003</td>
+                                <td>Feb 15, 2024 10:15 AM</td>
+                                <td><span class="badge bg-warning">Shipment Delayed</span></td>
+                                <td>B937769304</td>
+                                <td>Clinic B</td>
+                                <td>Lab Y</td>
+                                <td class="text-start">Shipment has been delayed in transit</td>
+                                <td><span class="badge bg-danger">Action Required</span></td>
+                            </tr>
+                            <!-- Existing Sample Notification -->
                             <tr>
                                 <td>NOT001</td>
                                 <td>Jan 24, 2024 14:30 PM</td>
@@ -577,17 +654,7 @@
                                 <td>Clinic 1</td>
                                 <td>Lab A</td>
                                 <td class="text-start">Batch received and verified at lab</td>
-                                <td><span class="text-success"><i class="fas fa-check-circle"></i> Acknowledged</span></td>
-                            </tr>
-                            <tr>
-                                <td>NOT002</td>
-                                <td>Jan 24, 2024 13:45 PM</td>
-                                <td><span class="badge bg-info">Package Accepted</span></td>
-                                <td>B123456009</td>
-                                <td>Clinic 3</td>
-                                <td>Lab B</td>
-                                <td class="text-start">Package accepted at lab receiving</td>
-                                <td><span class="text-success"><i class="fas fa-check-circle"></i> Acknowledged</span></td>
+                                <td><span class="badge bg-success">Completed</span></td>
                             </tr>
                         </tbody>
                     </table>

@@ -101,5 +101,64 @@
       "trackingNumber": "771801556280",
       "batchId": "B708522017"
     }
+  },
+  {
+    "alertId": "ALT7H2K",
+    "type": "Stale Pending",
+    "batchId": "B386490271",
+    "trackingNumber": "Pending Assignment",
+    "clinic": "Clinic A",
+    "lab": "Lab X",
+    "description": "Batch has been in pending status for more than 24 hours",
+    "date": "2024-02-15T09:30:00.000Z",
+    "status": "Action Required",
+    "issues": [],
+    "meta": {
+      "clinic": "Clinic A",
+      "lab": "Lab X",
+      "trackingNumber": "Pending Assignment",
+      "batchId": "B386490271"
+    }
+  },
+  {
+    "alertId": "ALT9P4M",
+    "type": "Shipment Delayed",
+    "batchId": "B937769304",
+    "trackingNumber": "123456789012",
+    "clinic": "Clinic B",
+    "lab": "Lab Y",
+    "description": "Shipment has been delayed in transit",
+    "date": "2024-02-15T10:15:00.000Z",
+    "status": "Action Required",
+    "issues": [],
+    "meta": {
+      "clinic": "Clinic B",
+      "lab": "Lab Y",
+      "trackingNumber": "123456789012",
+      "batchId": "B937769304"
+    }
+  },
+  {
+    "alertId": "ALT5K9N",
+    "type": "Package Accepted",
+    "batchId": "B123456010",
+    "trackingNumber": "987654321098",
+    "clinic": "Clinic 1",
+    "lab": "Lab A",
+    "description": "Batch received and verified at lab",
+    "date": "2024-01-24T14:30:00.000Z",
+    "status": "Completed",
+    "actionTaken": {
+      "actionType": "package_verified",
+      "actionDetails": "Package contents verified and accepted at lab facility",
+      "completedDate": "2024-01-24T15:00:00.000Z"
+    },
+    "issues": [],
+    "meta": {
+      "clinic": "Clinic 1",
+      "lab": "Lab A",
+      "trackingNumber": "987654321098",
+      "batchId": "B123456010"
+    }
   }
 ]
