@@ -81,6 +81,14 @@
             margin-top: 10px;
             display: none;
         }
+        .error-message {
+            color: #dc3545;
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff;
+            border-radius: 8px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -90,6 +98,7 @@
             <i class="fas fa-camera"></i>
             Start Scanning
         </button>
+        <div id="errorMessage" class="error-message"></div>
     </div>
 
     <div id="reader"></div>
@@ -107,24 +116,47 @@
     <script>
         let html5QrcodeScanner = null;
         const socket = io();
-        
-        document.getElementById('startCamera').addEventListener('click', async function() {
-            try {
-                this.style.display = 'none';
-                document.getElementById('reader').style.display = 'block';
-                document.getElementById('stopScanning').style.display = 'block';
-                document.querySelector('.last-scan').style.display = 'block';
 
+        async function startScanning() {
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const startButton = document.getElementById('startCamera');
+            
+            try {
+                console.log('Starting camera initialization...');
+                
+                // Check if camera access is available
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera API is not available in your browser');
+                }
+
+                // Request camera permission explicitly first
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                stream.getTracks().forEach(track => track.stop()); // Stop the test stream
+                
+                console.log('Camera permission granted, initializing scanner...');
+                
                 // Create new HTML5 QR code scanner
                 const html5QrCode = new Html5Qrcode("reader");
+                
+                // Get available cameras
+                console.log('Getting camera list...');
                 const cameras = await Html5Qrcode.getCameras();
+                console.log('Available cameras:', cameras);
                 
                 if (cameras && cameras.length) {
                     // Prefer back camera
                     const camera = cameras.find(camera => camera.label.toLowerCase().includes('back')) || cameras[0];
+                    console.log('Selected camera:', camera);
                     
+                    startButton.style.display = 'none';
+                    document.getElementById('reader').style.display = 'block';
+                    document.getElementById('stopScanning').style.display = 'block';
+                    document.querySelector('.last-scan').style.display = 'block';
+                    errorMessageDiv.style.display = 'none';
+                    
+                    // Start scanning
                     await html5QrCode.start(
-                        camera.id,
+                        { facingMode: "environment" }, // Use environment camera (back camera)
                         {
                             fps: 10,
                             qrbox: { width: 250, height: 250 }
@@ -135,26 +167,29 @@
                     
                     // Store scanner instance for cleanup
                     html5QrcodeScanner = html5QrCode;
+                    console.log('Scanner started successfully');
+                    
                 } else {
-                    alert('No cameras found on your device');
-                    this.style.display = 'flex';
-                    document.getElementById('reader').style.display = 'none';
-                    document.getElementById('stopScanning').style.display = 'none';
+                    throw new Error('No cameras found on your device');
                 }
             } catch (err) {
-                console.error('Error starting camera:', err);
-                alert('Error starting camera. Please make sure you have given camera permissions.');
-                this.style.display = 'flex';
+                console.error('Detailed camera error:', err);
+                errorMessageDiv.textContent = `Camera Error: ${err.message}`;
+                errorMessageDiv.style.display = 'block';
+                startButton.style.display = 'flex';
                 document.getElementById('reader').style.display = 'none';
                 document.getElementById('stopScanning').style.display = 'none';
             }
-        });
+        }
+        
+        document.getElementById('startCamera').addEventListener('click', startScanning);
 
         document.getElementById('stopScanning').addEventListener('click', async function() {
             if (html5QrcodeScanner) {
                 try {
                     await html5QrcodeScanner.stop();
                     html5QrcodeScanner = null;
+                    console.log('Scanner stopped successfully');
                 } catch (err) {
                     console.error('Error stopping camera:', err);
                 }
@@ -162,9 +197,12 @@
             document.getElementById('reader').style.display = 'none';
             this.style.display = 'none';
             document.getElementById('startCamera').style.display = 'flex';
+            document.getElementById('errorMessage').style.display = 'none';
         });
 
         function onScanSuccess(decodedText, decodedResult) {
+            console.log('Code scanned successfully:', decodedText);
+            
             // Update last scanned text
             document.getElementById('lastScanned').textContent = decodedText;
             
