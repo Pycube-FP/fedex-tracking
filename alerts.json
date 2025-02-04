@@ -103,24 +103,6 @@
     }
   },
   {
-    "alertId": "ALT7H2K",
-    "type": "Stale Pending",
-    "batchId": "B386490271",
-    "trackingNumber": "Pending Assignment",
-    "clinic": "Clinic A",
-    "lab": "Lab X",
-    "description": "Batch has been in pending status for more than 24 hours",
-    "date": "2024-02-15T09:30:00.000Z",
-    "status": "Action Required",
-    "issues": [],
-    "meta": {
-      "clinic": "Clinic A",
-      "lab": "Lab X",
-      "trackingNumber": "Pending Assignment",
-      "batchId": "B386490271"
-    }
-  },
-  {
     "alertId": "ALT9P4M",
     "type": "Shipment Delayed",
     "batchId": "B937769304",
@@ -159,6 +141,69 @@
       "lab": "Lab A",
       "trackingNumber": "987654321098",
       "batchId": "B123456010"
+    }
+  },
+  {
+    "alertId": "ALT6YT0",
+    "type": "Stale Pending",
+    "batchId": "B533463179",
+    "trackingNumber": "",
+    "clinic": "CL003",
+    "lab": "LB001",
+    "description": "Batch has been in pending status for more than 24 hours",
+    "date": "2025-02-04T17:20:59.704Z",
+    "status": "Completed",
+    "samples": [
+      {
+        "addedTime": "2/3/2025, 11:19:10 AM",
+        "collectionDate": "2025-02-03T11:19",
+        "containerCount": "1",
+        "id": "S0123",
+        "mrn": "M987",
+        "patientRef": "P0012",
+        "type": "Other"
+      }
+    ],
+    "issues": [],
+    "meta": {
+      "clinic": "CL003",
+      "lab": "LB001",
+      "trackingNumber": "",
+      "batchId": "B533463179"
+    },
+    "actionType": "shipment_expedited",
+    "actionDetails": "",
+    "resolutionDate": "",
+    "labMessage": "",
+    "completedDate": "2025-02-04T17:21:23.876Z"
+  },
+  {
+    "alertId": "ALTNMND",
+    "type": "Stale Pending",
+    "batchId": "B533463179",
+    "trackingNumber": "",
+    "clinic": "CL003",
+    "lab": "LB001",
+    "description": "Batch has been in pending status for more than 24 hours",
+    "date": "2025-02-04T17:21:28.576Z",
+    "status": "Action Required",
+    "samples": [
+      {
+        "addedTime": "2/3/2025, 11:19:10 AM",
+        "collectionDate": "2025-02-03T11:19",
+        "containerCount": "1",
+        "id": "S0123",
+        "mrn": "M987",
+        "patientRef": "P0012",
+        "type": "Other"
+      }
+    ],
+    "issues": [],
+    "meta": {
+      "clinic": "CL003",
+      "lab": "LB001",
+      "trackingNumber": "",
+      "batchId": "B533463179"
     }
   }
 ]

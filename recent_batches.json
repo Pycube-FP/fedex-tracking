@@ -17,7 +17,7 @@
                 }
             ],
             "staffInitiator": "user",
-            "status": "Out For Delivery",
+            "status": "Delivered",
             "trackingNumber": "771801556280"
         },
         {
@@ -77,7 +77,7 @@
                 }
             ],
             "staffInitiator": "user",
-            "status": "Delivered",
+            "status": "In Transit",
             "trackingNumber": "771803066382"
         },
         {
@@ -97,7 +97,7 @@
                 }
             ],
             "staffInitiator": "user",
-            "status": "Shipment Created",
+            "status": "In Transit",
             "trackingNumber": "771836459979"
         },
         {

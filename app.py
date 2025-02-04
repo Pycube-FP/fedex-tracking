@@ -600,6 +600,24 @@ def create_alert():
     # Ensure status is set to "Action Required" for new alerts
     alert_data['status'] = 'Action Required'
     alerts = load_alerts()
+    
+    # Check for existing alert with same batch ID and type that is not completed
+    existing_alert = next(
+        (alert for alert in alerts 
+         if alert['batchId'] == alert_data['batchId'] 
+         and alert['type'] == alert_data['type']
+         and alert['status'] != 'Completed'),
+        None
+    )
+    
+    if existing_alert:
+        # If alert exists and is not completed, don't create a duplicate
+        return jsonify({
+            "message": "Alert already exists for this batch",
+            "alert": existing_alert
+        }), 200
+    
+    # If no existing alert found, create new one
     alerts.append(alert_data)
     save_alerts(alerts)
     return jsonify({"message": "Alert created successfully", "alert": alert_data}), 201
