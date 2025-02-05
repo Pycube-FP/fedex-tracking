@@ -1199,6 +1199,50 @@
                 'Pending': -1
             };
 
+            // First, process any batches that should be in expected deliveries
+            const deliveryBatches = batches.filter(batch => 
+                expectedDeliveryStatuses.includes(batch.status) && batch.trackingNumber
+            );
+
+            for (const batch of deliveryBatches) {
+                try {
+                    console.log(`Checking expected delivery for batch ${batch.id} with status ${batch.status}`);
+                    const checkResponse = await fetch(`/api/expected-deliveries/${batch.id}`);
+                    
+                    if (!checkResponse.ok) {
+                        console.log(`Adding batch ${batch.id} to expected deliveries`);
+                        const expectedDeliveryData = {
+                            batchId: batch.id,
+                            trackingNumber: batch.trackingNumber,
+                            origin: batch.origin,
+                            destination: batch.destination,
+                            expectedSamples: batch.samples.length,
+                            samples: batch.samples,
+                            status: batch.status,
+                            expectedDeliveryDate: new Date(Date.now() + 24*60*60*1000).toISOString(),
+                            shippedAt: new Date().toISOString(),
+                            createdAt: batch.createdDate
+                        };
+
+                        const addResponse = await fetch('/api/expected-deliveries', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(expectedDeliveryData)
+                        });
+
+                        if (!addResponse.ok) {
+                            throw new Error(`Failed to add batch ${batch.id} to expected deliveries`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error processing expected delivery:', error);
+                }
+            }
+
+            // Continue with the rest of the tracking status updates...
+
             // Check for stale pending batches (more than 24 hours old)
             const stalePendingBatches = batches.filter(batch => {
                 if (batch.status === 'Pending') {
@@ -1338,30 +1382,28 @@
                                     statusCell.innerHTML = `<span class="status-badge ${getStatusColor(batch.status)}">${batch.status}</span>`;
                                 }
 
-                                // Update batch in backend
-                                await fetch(`/api/batches/${batch.id}`, {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(batch)
-                                });
-
                                 // Handle expected deliveries if status is relevant
+                                // Moving this before the batch update to ensure it's processed first
                                 if (expectedDeliveryStatuses.includes(latestEvent)) {
                                     try {
+                                        console.log(`Processing expected delivery for batch ${batch.id} with status ${latestEvent}`);
                                         // Check if batch already exists in expected deliveries
                                         const checkResponse = await fetch(`/api/expected-deliveries/${batch.id}`);
                                         if (checkResponse.ok) {
+                                            console.log(`Updating existing expected delivery for batch ${batch.id}`);
                                             // Update existing expected delivery
-                                            await fetch(`/api/expected-deliveries/${batch.id}`, {
+                                            const updateResponse = await fetch(`/api/expected-deliveries/${batch.id}`, {
                                                 method: 'PUT',
                                                 headers: {
                                                     'Content-Type': 'application/json'
                                                 },
                                                 body: JSON.stringify({ status: latestEvent })
                                             });
+                                            if (!updateResponse.ok) {
+                                                throw new Error(`Failed to update expected delivery status for batch ${batch.id}`);
+                                            }
                                         } else {
+                                            console.log(`Creating new expected delivery for batch ${batch.id}`);
                                             // Add new expected delivery
                                             const expectedDeliveryData = {
                                                 batchId: batch.id,
@@ -1377,17 +1419,49 @@
                                                 createdAt: batch.createdDate
                                             };
 
-                                            await fetch('/api/expected-deliveries', {
+                                            const addResponse = await fetch('/api/expected-deliveries', {
                                                 method: 'POST',
                                                 headers: {
                                                     'Content-Type': 'application/json'
                                                 },
                                                 body: JSON.stringify(expectedDeliveryData)
                                             });
+
+                                            if (!addResponse.ok) {
+                                                const errorData = await addResponse.json();
+                                                throw new Error(`Failed to add batch to expected deliveries: ${errorData.message || 'Unknown error'}`);
+                                            }
                                         }
                                     } catch (error) {
                                         console.error('Error processing expected delivery:', error);
+                                        // Show error toast
+                                        const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                                        document.querySelector('#errorToast .toast-body').innerHTML = 
+                                            `<i class="fas fa-exclamation-circle me-2"></i>Error updating expected deliveries: ${error.message}`;
+                                        toast.show();
                                     }
+                                }
+
+                                // Update batch in backend after expected delivery is processed
+                                try {
+                                    const updateResponse = await fetch(`/api/batches/${batch.id}`, {
+                                        method: 'PUT',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify(batch)
+                                    });
+
+                                    if (!updateResponse.ok) {
+                                        throw new Error('Failed to update batch status');
+                                    }
+                                } catch (error) {
+                                    console.error('Error updating batch:', error);
+                                    // Show error toast
+                                    const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                                    document.querySelector('#errorToast .toast-body').innerHTML = 
+                                        `<i class="fas fa-exclamation-circle me-2"></i>Error updating batch: ${error.message}`;
+                                    toast.show();
                                 }
                             }
                         }

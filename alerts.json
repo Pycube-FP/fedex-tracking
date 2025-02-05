@@ -72,34 +72,21 @@
     }
   },
   {
-    "alertId": "ALT4134",
-    "type": "Missing Samples",
-    "batchId": "B708522017",
-    "trackingNumber": "771801556280",
-    "clinic": "cl001",
-    "lab": "Lab A",
-    "description": "Issues found during lab verification:",
-    "date": "2025-02-03T17:33:23.939Z",
+    "alertId": "ALT7H2K",
+    "type": "Stale Pending",
+    "batchId": "B386490271",
+    "trackingNumber": "Pending Assignment",
+    "clinic": "Clinic A",
+    "lab": "Lab X",
+    "description": "Batch has been in pending status for more than 24 hours",
+    "date": "2024-02-15T09:30:00.000Z",
     "status": "Action Required",
-    "samples": [
-      {
-        "id": "S001",
-        "type": "Biopsy (Formalin-Fixed)",
-        "status": "missing",
-        "comments": "No comments"
-      }
-    ],
-    "issues": [
-      {
-        "sampleId": "S001",
-        "issue": "missing: No comments"
-      }
-    ],
+    "issues": [],
     "meta": {
-      "clinic": "CL001",
-      "lab": "Lab A",
-      "trackingNumber": "771801556280",
-      "batchId": "B708522017"
+      "clinic": "Clinic A",
+      "lab": "Lab X",
+      "trackingNumber": "Pending Assignment",
+      "batchId": "B386490271"
     }
   },
   {
@@ -121,100 +108,49 @@
     }
   },
   {
-    "alertId": "ALT5K9N",
-    "type": "Package Accepted",
-    "batchId": "B123456010",
-    "trackingNumber": "987654321098",
-    "clinic": "Clinic 1",
-    "lab": "Lab A",
-    "description": "Batch received and verified at lab",
-    "date": "2024-01-24T14:30:00.000Z",
-    "status": "Completed",
-    "actionTaken": {
-      "actionType": "package_verified",
-      "actionDetails": "Package contents verified and accepted at lab facility",
-      "completedDate": "2024-01-24T15:00:00.000Z"
-    },
-    "issues": [],
-    "meta": {
-      "clinic": "Clinic 1",
-      "lab": "Lab A",
-      "trackingNumber": "987654321098",
-      "batchId": "B123456010"
-    }
-  },
-  {
-    "alertId": "ALT6YT0",
-    "type": "Stale Pending",
-    "batchId": "B533463179",
-    "trackingNumber": "",
-    "clinic": "CL003",
-    "lab": "LB001",
-    "description": "Batch has been in pending status for more than 24 hours",
-    "date": "2025-02-04T17:20:59.704Z",
-    "status": "Completed",
-    "samples": [
-      {
-        "addedTime": "2/3/2025, 11:19:10 AM",
-        "collectionDate": "2025-02-03T11:19",
-        "containerCount": "1",
-        "id": "S0123",
-        "mrn": "M987",
-        "patientRef": "P0012",
-        "type": "Other"
-      }
-    ],
-    "issues": [],
-    "meta": {
-      "clinic": "CL003",
-      "lab": "LB001",
-      "trackingNumber": "",
-      "batchId": "B533463179"
-    },
-    "actionType": "shipment_expedited",
-    "actionDetails": "",
-    "resolutionDate": "",
-    "labMessage": "",
-    "completedDate": "2025-02-04T17:21:23.876Z"
-  },
-  {
-    "alertId": "ALTNMND",
-    "type": "Stale Pending",
-    "batchId": "B533463179",
-    "trackingNumber": "",
-    "clinic": "CL003",
-    "lab": "LB001",
-    "description": "Batch has been in pending status for more than 24 hours",
-    "date": "2025-02-04T17:21:28.576Z",
-    "status": "Action Required",
-    "samples": [
-      {
-        "addedTime": "2/3/2025, 11:19:10 AM",
-        "collectionDate": "2025-02-03T11:19",
-        "containerCount": "1",
-        "id": "S0123",
-        "mrn": "M987",
-        "patientRef": "P0012",
-        "type": "Other"
-      }
-    ],
-    "issues": [],
-    "meta": {
-      "clinic": "CL003",
-      "lab": "LB001",
-      "trackingNumber": "",
-      "batchId": "B533463179"
-    }
-  },
-  {
-    "alertId": "ALT2MG3",
+    "alertId": "ALTZU8I",
     "type": "Stale Pending",
     "batchId": "B958453415",
     "trackingNumber": "",
     "clinic": "CL001",
     "lab": "LB002",
     "description": "Batch has been in pending status for more than 24 hours",
-    "date": "2025-02-05T15:42:05.936Z",
+    "date": "2025-02-05T20:23:26.444Z",
+    "status": "Completed",
+    "samples": [
+      {
+        "addedTime": "2/3/2025, 4:43:14 PM",
+        "collectionDate": "2025-02-01T16:43",
+        "containerCount": "1",
+        "id": "S132",
+        "mrn": "M123",
+        "patientRef": "P123",
+        "photo": null,
+        "type": "Glass Slides"
+      }
+    ],
+    "issues": [],
+    "meta": {
+      "clinic": "CL001",
+      "lab": "LB002",
+      "trackingNumber": "",
+      "batchId": "B958453415"
+    },
+    "actionType": "shipment_expedited",
+    "actionDetails": "",
+    "resolutionDate": "",
+    "labMessage": "",
+    "completedDate": "2025-02-05T20:23:54.380Z"
+  },
+  {
+    "alertId": "ALTSTAQ",
+    "type": "Stale Pending",
+    "batchId": "B958453415",
+    "trackingNumber": "",
+    "clinic": "CL001",
+    "lab": "LB002",
+    "description": "Batch has been in pending status for more than 24 hours",
+    "date": "2025-02-05T20:23:58.153Z",
     "status": "Action Required",
     "samples": [
       {
