@@ -1199,6 +1199,59 @@
                 'Pending': -1
             };
 
+            // Check for stale pending batches (more than 24 hours old)
+            const stalePendingBatches = batches.filter(batch => {
+                if (batch.status === 'Pending') {
+                    const createdDate = new Date(batch.createdDate);
+                    const now = new Date();
+                    const hoursDiff = (now - createdDate) / (1000 * 60 * 60);
+                    return hoursDiff >= 24;
+                }
+                return false;
+            });
+
+            // Create alerts for stale pending batches
+            for (const batch of stalePendingBatches) {
+                try {
+                    const alertData = {
+                        alertId: `ALT${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+                        type: 'Stale Pending',
+                        batchId: batch.id,
+                        trackingNumber: batch.trackingNumber,
+                        clinic: batch.origin,
+                        lab: batch.destination,
+                        description: `Batch has been in pending status for more than 24 hours`,
+                        date: new Date().toISOString(),
+                        status: 'Action Required',
+                        samples: batch.samples,
+                        issues: [],
+                        meta: {
+                            clinic: batch.origin,
+                            lab: batch.destination,
+                            trackingNumber: batch.trackingNumber,
+                            batchId: batch.id
+                        }
+                    };
+
+                    const response = await fetch('/api/alerts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(alertData)
+                    });
+
+                    if (response.ok) {
+                        const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                        document.querySelector('#errorToast .toast-body').innerHTML = 
+                            `<i class="fas fa-exclamation-circle me-2"></i>Alert: Batch ${batch.id} has been pending for over 24 hours`;
+                        toast.show();
+                    }
+                } catch (error) {
+                    console.error('Error creating alert for stale pending batch:', error);
+                }
+            }
+
             // Handle tracking updates
             const updatePromises = batches.map(async (batch) => {
                 if (batch.trackingNumber) {
@@ -1207,6 +1260,56 @@
                         if (trackingResponse.ok) {
                             const trackingData = await trackingResponse.json();
                             const timelineData = trackingData.timeline || trackingData;
+
+                            // Check for delays in the timeline
+                            let isDelayed = false;
+                            Object.entries(timelineData).forEach(([status, data]) => {
+                                if (data.completed && data.description && data.description.toLowerCase().includes('delay')) {
+                                    isDelayed = true;
+                                }
+                            });
+
+                            // Create alert for delayed shipment
+                            if (isDelayed) {
+                                try {
+                                    const alertData = {
+                                        alertId: `ALT${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+                                        type: 'Shipment Delayed',
+                                        batchId: batch.id,
+                                        trackingNumber: batch.trackingNumber,
+                                        clinic: batch.origin,
+                                        lab: batch.destination,
+                                        description: `Shipment has been delayed in transit`,
+                                        date: new Date().toISOString(),
+                                        status: 'Action Required',
+                                        samples: batch.samples,
+                                        issues: [],
+                                        meta: {
+                                            clinic: batch.origin,
+                                            lab: batch.destination,
+                                            trackingNumber: batch.trackingNumber,
+                                            batchId: batch.id
+                                        }
+                                    };
+
+                                    const response = await fetch('/api/alerts', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify(alertData)
+                                    });
+
+                                    if (response.ok) {
+                                        const toast = new bootstrap.Toast(document.getElementById('errorToast'));
+                                        document.querySelector('#errorToast .toast-body').innerHTML = 
+                                            `<i class="fas fa-exclamation-circle me-2"></i>Alert: Shipment ${batch.trackingNumber} has been delayed`;
+                                        toast.show();
+                                    }
+                                } catch (error) {
+                                    console.error('Error creating alert for delayed shipment:', error);
+                                }
+                            }
 
                             // Find the latest event with highest priority
                             let latestEvent = null;
