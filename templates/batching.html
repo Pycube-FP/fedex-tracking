@@ -1188,126 +1188,18 @@
             let hasStatusUpdates = false;
             const expectedDeliveryStatuses = ['In Transit', 'Out For Delivery', 'Delivered'];
 
-            // Check for stale pending batches (more than 24 hours old)
-            const stalePendingBatches = batches.filter(batch => {
-                if (batch.status === 'Pending') {
-                    const createdDate = new Date(batch.createdDate);
-                    const now = new Date();
-                    const hoursDiff = (now - createdDate) / (1000 * 60 * 60);
-                    return hoursDiff >= 24;
-                }
-                return false;
-            });
+            // Define status priority to prevent status from going backwards
+            const statusPriority = {
+                'Delivered': 5,
+                'Out For Delivery': 4,
+                'In Transit': 3,
+                'Shipment Picked Up': 2,
+                'Shipment Created': 1,
+                'Shipment Cancelled': 0,
+                'Pending': -1
+            };
 
-            // Create alerts for stale pending batches
-            for (const batch of stalePendingBatches) {
-                try {
-                    const alertData = {
-                        alertId: `ALT${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-                        type: 'Stale Pending',
-                        batchId: batch.id,
-                        trackingNumber: batch.trackingNumber,
-                        clinic: batch.origin,
-                        lab: batch.destination,
-                        description: `Batch has been in pending status for more than 24 hours`,
-                        date: new Date().toISOString(),
-                        status: 'Action Required',
-                        samples: batch.samples,
-                        issues: [],
-                        meta: {
-                            clinic: batch.origin,
-                            lab: batch.destination,
-                            trackingNumber: batch.trackingNumber,
-                            batchId: batch.id
-                        }
-                    };
-
-                    const response = await fetch('/api/alerts', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(alertData)
-                    });
-
-                    if (response.ok) {
-                        // Show toast notification
-                        const toast = new bootstrap.Toast(document.getElementById('errorToast'));
-                        document.querySelector('#errorToast .toast-body').innerHTML = 
-                            `<i class="fas fa-exclamation-circle me-2"></i>Alert: Batch ${batch.id} has been pending for over 24 hours`;
-                        toast.show();
-                    }
-                } catch (error) {
-                    console.error('Error creating alert for stale pending batch:', error);
-                }
-            }
-
-            // First, handle existing batches that are already in expected delivery statuses
-            console.log('Checking existing batches for expected delivery statuses...');
-            console.log('Current batches:', batches);
-            console.log('Expected delivery statuses:', expectedDeliveryStatuses);
-
-            const existingBatchPromises = batches.map(async (batch) => {
-                console.log(`Checking batch ${batch.id}, current status: ${batch.status}`);
-                if (expectedDeliveryStatuses.includes(batch.status)) {
-                    console.log(`Batch ${batch.id} has status ${batch.status}, adding to expected deliveries...`);
-                    try {
-                        // Check if batch already exists in expected deliveries
-                        const checkResponse = await fetch(`/api/expected-deliveries/${batch.id}`);
-                        if (checkResponse.ok) {
-                            // Batch exists, update its status if needed
-                            const existingDelivery = await checkResponse.json();
-                            if (existingDelivery.status !== batch.status) {
-                                const updateResponse = await fetch(`/api/expected-deliveries/${batch.id}`, {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ status: batch.status })
-                                });
-                                if (!updateResponse.ok) {
-                                    throw new Error('Failed to update expected delivery status');
-                                }
-                            }
-                        } else {
-                            // Format the data for new expected delivery
-                            const expectedDeliveryData = {
-                                batchId: batch.id,
-                                trackingNumber: batch.trackingNumber,
-                                origin: batch.origin,
-                                destination: batch.destination,
-                                expectedSamples: batch.samples.length,
-                                samples: batch.samples,
-                                status: batch.status,
-                                expectedDeliveryDate: new Date(Date.now() + 24*60*60*1000).toISOString(),
-                                shippedAt: new Date().toISOString(),
-                                createdAt: batch.createdDate
-                            };
-
-                            // Add to expected deliveries
-                            const addToExpectedResponse = await fetch('/api/expected-deliveries', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(expectedDeliveryData)
-                            });
-
-                            if (!addToExpectedResponse.ok) {
-                                throw new Error('Failed to add batch to expected deliveries');
-                            }
-                        }
-                        console.log('Successfully processed batch in expected deliveries:', batch.id);
-                    } catch (error) {
-                        console.error('Error processing batch in expected deliveries:', error);
-                    }
-                }
-            });
-
-            // Wait for existing batches to be processed
-            await Promise.all(existingBatchPromises);
-
-            // Then handle tracking updates
+            // Handle tracking updates
             const updatePromises = batches.map(async (batch) => {
                 if (batch.trackingNumber) {
                     try {
@@ -1316,69 +1208,23 @@
                             const trackingData = await trackingResponse.json();
                             const timelineData = trackingData.timeline || trackingData;
 
-                            // Check for delays in the timeline
-                            let isDelayed = false;
-                            Object.entries(timelineData).forEach(([status, data]) => {
-                                if (data.completed && data.description && data.description.toLowerCase().includes('delay')) {
-                                    isDelayed = true;
-                                }
-                            });
-
-                            // Create alert for delayed shipment
-                            if (isDelayed) {
-                                try {
-                                    const alertData = {
-                                        alertId: `ALT${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-                                        type: 'Shipment Delayed',
-                                        batchId: batch.id,
-                                        trackingNumber: batch.trackingNumber,
-                                        clinic: batch.origin,
-                                        lab: batch.destination,
-                                        description: `Shipment has been delayed in transit`,
-                                        date: new Date().toISOString(),
-                                        status: 'Action Required',
-                                        samples: batch.samples,
-                                        issues: [],
-                                        meta: {
-                                            clinic: batch.origin,
-                                            lab: batch.destination,
-                                            trackingNumber: batch.trackingNumber,
-                                            batchId: batch.id
-                                        }
-                                    };
-
-                                    const response = await fetch('/api/alerts', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify(alertData)
-                                    });
-
-                                    if (response.ok) {
-                                        // Show toast notification
-                                        const toast = new bootstrap.Toast(document.getElementById('errorToast'));
-                                        document.querySelector('#errorToast .toast-body').innerHTML = 
-                                            `<i class="fas fa-exclamation-circle me-2"></i>Alert: Shipment ${batch.trackingNumber} has been delayed`;
-                                        toast.show();
-                                    }
-                                } catch (error) {
-                                    console.error('Error creating alert for delayed shipment:', error);
-                                }
-                            }
-
-                            // Find the latest completed event
+                            // Find the latest event with highest priority
                             let latestEvent = null;
-                            let latestTimestamp = null;
+                            let highestPriority = -1;
 
                             Object.entries(timelineData).forEach(([status, data]) => {
-                                if (data.completed && (!latestTimestamp || new Date(data.timestamp) > new Date(latestTimestamp))) {
+                                if (data.completed && statusPriority[status] > highestPriority) {
                                     latestEvent = status;
-                                    latestTimestamp = data.timestamp;
+                                    highestPriority = statusPriority[status];
                                 }
                             });
 
-                            if (latestEvent && batch.status !== latestEvent) {
+                            // Only update if new status has higher priority or is 'Shipment Cancelled'
+                            if (latestEvent && (
+                                !batch.status || 
+                                statusPriority[latestEvent] > statusPriority[batch.status] ||
+                                latestEvent === 'Shipment Cancelled'
+                            )) {
                                 const oldStatus = batch.status;
                                 batch.status = latestEvent;
                                 hasStatusUpdates = true;
@@ -1389,23 +1235,29 @@
                                     statusCell.innerHTML = `<span class="status-badge ${getStatusColor(batch.status)}">${batch.status}</span>`;
                                 }
 
-                                // Check if the new status requires adding/updating in expected deliveries
+                                // Update batch in backend
+                                await fetch(`/api/batches/${batch.id}`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify(batch)
+                                });
+
+                                // Handle expected deliveries if status is relevant
                                 if (expectedDeliveryStatuses.includes(latestEvent)) {
                                     try {
                                         // Check if batch already exists in expected deliveries
                                         const checkResponse = await fetch(`/api/expected-deliveries/${batch.id}`);
                                         if (checkResponse.ok) {
                                             // Update existing expected delivery
-                                            const updateResponse = await fetch(`/api/expected-deliveries/${batch.id}`, {
+                                            await fetch(`/api/expected-deliveries/${batch.id}`, {
                                                 method: 'PUT',
                                                 headers: {
                                                     'Content-Type': 'application/json'
                                                 },
                                                 body: JSON.stringify({ status: latestEvent })
                                             });
-                                            if (!updateResponse.ok) {
-                                                throw new Error('Failed to update expected delivery status');
-                                            }
                                         } else {
                                             // Add new expected delivery
                                             const expectedDeliveryData = {
@@ -1422,31 +1274,18 @@
                                                 createdAt: batch.createdDate
                                             };
 
-                                            const addToExpectedResponse = await fetch('/api/expected-deliveries', {
+                                            await fetch('/api/expected-deliveries', {
                                                 method: 'POST',
                                                 headers: {
                                                     'Content-Type': 'application/json'
                                                 },
                                                 body: JSON.stringify(expectedDeliveryData)
                                             });
-
-                                            if (!addToExpectedResponse.ok) {
-                                                throw new Error('Failed to add batch to expected deliveries');
-                                            }
                                         }
                                     } catch (error) {
                                         console.error('Error processing expected delivery:', error);
                                     }
                                 }
-
-                                // Update individual batch in the backend
-                                await fetch(`/api/batches/${batch.id}`, {
-                                    method: 'PUT',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify(batch)
-                                });
                             }
                         }
                     } catch (error) {
@@ -1458,7 +1297,7 @@
             // Wait for all updates to complete
             await Promise.all(updatePromises);
 
-            // If any statuses were updated, update KPIs
+            // Update KPIs if any statuses were updated
             if (hasStatusUpdates) {
                 updateKPIs();
             }

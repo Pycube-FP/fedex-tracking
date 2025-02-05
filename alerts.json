@@ -205,5 +205,35 @@
       "trackingNumber": "",
       "batchId": "B533463179"
     }
+  },
+  {
+    "alertId": "ALT2MG3",
+    "type": "Stale Pending",
+    "batchId": "B958453415",
+    "trackingNumber": "",
+    "clinic": "CL001",
+    "lab": "LB002",
+    "description": "Batch has been in pending status for more than 24 hours",
+    "date": "2025-02-05T15:42:05.936Z",
+    "status": "Action Required",
+    "samples": [
+      {
+        "addedTime": "2/3/2025, 4:43:14 PM",
+        "collectionDate": "2025-02-01T16:43",
+        "containerCount": "1",
+        "id": "S132",
+        "mrn": "M123",
+        "patientRef": "P123",
+        "photo": null,
+        "type": "Glass Slides"
+      }
+    ],
+    "issues": [],
+    "meta": {
+      "clinic": "CL001",
+      "lab": "LB002",
+      "trackingNumber": "",
+      "batchId": "B958453415"
+    }
   }
 ]

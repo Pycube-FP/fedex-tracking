@@ -18,7 +18,7 @@
             }
         ],
         "createdAt": "1/31/2025, 3:30:00 PM",
-        "status": "In Transit",
+        "status": "Delivered",
         "expectedDeliveryDate": "2025-02-04T17:20:01.852Z",
         "shippedAt": "1/31/2025, 3:30:00 PM"
     },
@@ -89,5 +89,27 @@
         "expectedDeliveryDate": "2025-02-05T17:21:00.627Z",
         "shippedAt": "2025-02-03T17:21:00-05:00",
         "createdAt": "2/3/2025, 11:15:17 AM"
+    },
+    {
+        "batchId": "B533463179",
+        "trackingNumber": "771872922962",
+        "origin": "CL003",
+        "destination": "LB001",
+        "expectedSamples": 1,
+        "samples": [
+            {
+                "addedTime": "2/3/2025, 11:19:10 AM",
+                "collectionDate": "2025-02-03T11:19",
+                "containerCount": "1",
+                "id": "S0123",
+                "mrn": "M987",
+                "patientRef": "P0012",
+                "type": "Other"
+            }
+        ],
+        "status": "In Transit",
+        "expectedDeliveryDate": "2025-02-06T19:43:05.448Z",
+        "shippedAt": "2025-02-04T17:03:00-05:00",
+        "createdAt": "2/3/2025, 11:19:13 AM"
     }
 ]

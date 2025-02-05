@@ -20,27 +20,51 @@
             "type": "clinic",
             "facilityId": "CL003",
             "name": "Skin Care Hospital Clinic",
-            "location": "123 Drive, Dermat, DM 20011",
-            "contact": "111-111-1111",
-            "email": "s@d.com"
+            "location": "123 Drive, Herndon, Virginia 20011",
+            "contact": "273-457-2647",
+            "email": "h@p.com"
         }
     ],
     "labs": [
         {
             "type": "lab",
             "facilityId": "LB001",
-            "name": "Central Laboratory",
-            "location": "789 Tech Park, San Jose, CA 95110",
+            "name": "Skinpros - Providence",
+            "location": "1287 North main Street, Providence, RI 02904",
             "contact": "408-555-0789",
-            "email": "w@w.com"
+            "email": "s@d.com"
         },
         {
             "type": "lab",
             "facilityId": "LB002",
-            "name": "Diagnostics Lab",
-            "location": "321 Research Blvd, Austin, TX 78701",
+            "name": "NE Dermat Lab - Falmouth",
+            "location": "37 Edgerton D, Ste 4, North Falmouth, MA 02556",
             "contact": "512-555-0321",
-            "email": "s@g.com"
+            "email": "s@p.com"
+        },
+        {
+            "type": "lab",
+            "facilityId": "LB003",
+            "name": "NE Dermat Lab - Beverly",
+            "location": "138 Conant St, Beverly, MA 01915",
+            "contact": "879-685-7856",
+            "email": "labne@d.com"
+        },
+        {
+            "type": "lab",
+            "facilityId": "LB004",
+            "name": "NE Dermat Lab - Exeter",
+            "location": "23 Hampton Rd, Exeter, NH 03833",
+            "contact": "876-768-4977",
+            "email": "labne1@d.com"
+        },
+        {
+            "type": "lab",
+            "facilityId": "LB005",
+            "name": "NE Dermat Lab - York",
+            "location": "519 Us Route 1, Unit 2, York, ME 03909",
+            "contact": "846-393-4535",
+            "email": "me@d.com"
         }
     ]
 }

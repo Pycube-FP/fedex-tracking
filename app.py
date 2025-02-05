@@ -364,25 +364,188 @@ def get_tracking_details(tracking_number):
         logging.error(f"Error fetching tracking details: {e}")
         return jsonify({'error': 'Failed to fetch tracking details'}), 500
 
+@app.route('/api/analytics')
+def get_analytics():
+    try:
+        start_date = request.args.get('start')
+        end_date = request.args.get('end')
+        
+        # Load data from files
+        with open('recent_batches.json', 'r') as f:
+            batches_data = json.load(f)['batches']
+        
+        with open('alerts.json', 'r') as f:
+            alerts_data = json.load(f)
+            
+        with open('expected_deliveries.json', 'r') as f:
+            deliveries_data = json.load(f)
+
+        # Filter data by date range if provided
+        if start_date and end_date:
+            start = datetime.strptime(start_date, '%Y-%m-%d')
+            end = datetime.strptime(end_date, '%Y-%m-%d')
+            
+            batches_data = [b for b in batches_data 
+                          if start <= datetime.strptime(b['createdDate'].split(',')[0], '%m/%d/%Y') <= end]
+            
+            alerts_data = [a for a in alerts_data 
+                         if start <= datetime.strptime(a['date'].split('T')[0], '%Y-%m-%d') <= end]
+            
+            deliveries_data = [d for d in deliveries_data 
+                             if start <= datetime.strptime(d['createdAt'].split(',')[0], '%m/%d/%Y') <= end]
+
+        # Process Sample Analytics
+        sample_types = defaultdict(int)
+        daily_samples = defaultdict(int)
+        total_samples = 0
+        pending_samples = 0
+
+        for batch in batches_data:
+            batch_date = batch['createdDate'].split(',')[0]
+            for sample in batch.get('samples', []):
+                sample_types[sample['type']] += 1
+                daily_samples[batch_date] += 1
+                total_samples += 1
+                if batch['status'] == 'Pending':
+                    pending_samples += 1
+
+        # Process Batch Analytics
+        batch_statuses = defaultdict(int)
+        processing_times = defaultdict(list)
+        active_batches = 0
+
+        for batch in batches_data:
+            batch_statuses[batch['status']] += 1
+            if batch['status'] in ['Pending', 'In Transit']:
+                active_batches += 1
+            
+            # Calculate processing time for completed batches
+            if batch['status'] == 'Delivered' and 'createdDate' in batch:
+                created = datetime.strptime(batch['createdDate'], '%m/%d/%Y, %I:%M:%S %p')
+                # Find matching delivery in expected_deliveries for actual delivery date
+                delivery = next((d for d in deliveries_data if d['batchId'] == batch['id']), None)
+                if delivery and 'shippedAt' in delivery:
+                    delivered = datetime.strptime(delivery['shippedAt'], '%m/%d/%Y, %I:%M:%S %p')
+                    processing_time = (delivered - created).total_seconds() / 3600  # hours
+                    processing_times[batch['status']].append(processing_time)
+
+        # Process Location Analytics
+        clinic_volumes = defaultdict(int)
+        lab_volumes = defaultdict(int)
+        active_routes = set()
+
+        for batch in batches_data:
+            clinic_volumes[batch['origin']] += 1
+            lab_volumes[batch['destination']] += 1
+            if batch['status'] in ['Pending', 'In Transit']:
+                active_routes.add(f"{batch['origin']}-{batch['destination']}")
+
+        # Process Alert Analytics
+        alert_types = defaultdict(int)
+        alert_trends = defaultdict(int)
+        open_alerts = 0
+        resolution_times = []
+
+        for alert in alerts_data:
+            alert_types[alert['type']] += 1
+            alert_date = alert['date'].split('T')[0]
+            alert_trends[alert_date] += 1
+            
+            if alert['status'] == 'Action Required':
+                open_alerts += 1
+            
+            # Calculate resolution time for completed alerts
+            if alert['status'] == 'Completed' and 'completedDate' in alert:
+                created = datetime.strptime(alert['date'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                completed = datetime.strptime(alert['completedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                resolution_time = (completed - created).total_seconds() / 3600  # hours
+                resolution_times.append(resolution_time)
+
+        # Prepare response data
+        response_data = {
+            'samples': {
+                'total': total_samples,
+                'average': round(total_samples / len(batches_data) if batches_data else 0, 1),
+                'successRate': round((total_samples - pending_samples) / total_samples * 100 if total_samples else 0, 1),
+                'pending': pending_samples,
+                'types': {
+                    'labels': list(sample_types.keys()),
+                    'values': list(sample_types.values())
+                },
+                'daily': {
+                    'labels': sorted(daily_samples.keys()),
+                    'values': [daily_samples[date] for date in sorted(daily_samples.keys())]
+                }
+            },
+            'batches': {
+                'total': len(batches_data),
+                'active': active_batches,
+                'successRate': round(batch_statuses['Delivered'] / len(batches_data) * 100 if batches_data else 0, 1),
+                'avgProcessingTime': round(sum(sum(times) for times in processing_times.values()) / 
+                                        sum(len(times) for times in processing_times.values()) 
+                                        if any(processing_times.values()) else 0, 1),
+                'status': {
+                    'labels': list(batch_statuses.keys()),
+                    'values': list(batch_statuses.values())
+                },
+                'processingTimes': {
+                    'labels': list(processing_times.keys()),
+                    'values': [round(sum(times)/len(times), 1) if times else 0 
+                              for times in processing_times.values()]
+                }
+            },
+            'locations': {
+                'active': len(set(b['origin'] for b in batches_data) | set(b['destination'] for b in batches_data)),
+                'activeRoutes': len(active_routes),
+                'routeEfficiency': round(len(set(f"{b['origin']}-{b['destination']}" for b in batches_data)) / 
+                                      (len(set(b['origin'] for b in batches_data)) * 
+                                       len(set(b['destination'] for b in batches_data))) * 100, 1),
+                'avgDeliveryTime': round(sum(sum(times) for times in processing_times.values()) / 
+                                       sum(len(times) for times in processing_times.values()) 
+                                       if any(processing_times.values()) else 0, 1),
+                'topClinics': {
+                    'labels': sorted(clinic_volumes.keys(), key=clinic_volumes.get, reverse=True)[:10],
+                    'values': [clinic_volumes[clinic] for clinic in 
+                              sorted(clinic_volumes.keys(), key=clinic_volumes.get, reverse=True)[:10]]
+                },
+                'topLabs': {
+                    'labels': sorted(lab_volumes.keys(), key=lab_volumes.get, reverse=True)[:10],
+                    'values': [lab_volumes[lab] for lab in 
+                              sorted(lab_volumes.keys(), key=lab_volumes.get, reverse=True)[:10]]
+                }
+            },
+            'alerts': {
+                'total': len(alerts_data),
+                'open': open_alerts,
+                'resolutionRate': round((len(alerts_data) - open_alerts) / len(alerts_data) * 100 
+                                      if alerts_data else 0, 1),
+                'avgResolutionTime': round(sum(resolution_times) / len(resolution_times) 
+                                         if resolution_times else 0, 1),
+                'types': {
+                    'labels': list(alert_types.keys()),
+                    'values': list(alert_types.values())
+                },
+                'trends': {
+                    'labels': sorted(alert_trends.keys()),
+                    'values': [alert_trends[date] for date in sorted(alert_trends.keys())]
+                }
+            }
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        app.logger.error(f"Error generating analytics data: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/analytics')
 @login_required
 def analytics():
     try:
-        shipment_data = process_shipment_data()
-        return render_template('analytics.html', 
-                             dates=shipment_data['dates'],
-                             counts=shipment_data['counts'],
-                             status_data=shipment_data['status_data'],
-                             courier_data=shipment_data['courier_data'],
-                             lab_data=shipment_data['lab_data'])
+        return render_template('analytics.html')
     except Exception as e:
-        logging.error(f"Error in analytics route: {e}")
-        return render_template('analytics.html', 
-                             dates=[], 
-                             counts=[],
-                             status_data={'labels': [], 'values': []},
-                             courier_data={'labels': [], 'values': []},
-                             lab_data={'labels': [], 'values': []})
+        app.logger.error(f"Error in analytics route: {e}")
+        return render_template('analytics.html')
 
 @app.route('/')
 @login_required

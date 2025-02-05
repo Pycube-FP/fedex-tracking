@@ -9,6 +9,137 @@
     <link rel="stylesheet" href="/static/styles.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .analytics-container {
+            padding: 20px;
+        }
+        .analytics-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .date-filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .date-input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .filter-btn {
+            padding: 8px 16px;
+            background: #34495e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .filter-btn:hover {
+            background: #2c3e50;
+        }
+        .section-header {
+            margin: 30px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #34495e;
+            color: #2c3e50;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-box {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chart-box h3 {
+            margin-bottom: 15px;
+            color: #34495e;
+            font-size: 1.1rem;
+        }
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .kpi-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #34495e;
+            margin: 10px 0;
+        }
+        .kpi-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        .map-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #usa-map {
+            height: 500px;
+            width: 100%;
+            background: #f8f9fa;
+        }
+        #usa-map svg {
+            width: 100%;
+            height: 100%;
+        }
+        .state {
+            fill: #eee;
+            stroke: #fff;
+            stroke-width: 1;
+            cursor: pointer;
+            transition: fill 0.3s;
+        }
+        .state:hover {
+            fill-opacity: 0.8;
+        }
+        .state-tooltip {
+            position: absolute;
+            padding: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .legend-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .legend-dot.clinic { background-color: #3498db !important; }
+        .legend-dot.lab { background-color: #2ecc71 !important; }
+        .legend-dot.both { background-color: #9b59b6 !important; }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://d3js.org/topojson.v3.min.js"></script>
 </head>
 <body>
     {% include 'header.html' %}
@@ -16,7 +147,7 @@
         <div class="container-wrapper">
             <div class="analytics-container">
                 <div class="analytics-header">
-                    <h2>Shipment Analytics</h2>
+                    <h2>Analytics Dashboard</h2>
                     <div class="date-filters">
                         <input type="date" id="startDate" class="date-input">
                         <span>to</span>
@@ -25,29 +156,155 @@
                         <button id="resetFilter" class="filter-btn">Reset</button>
                     </div>
                 </div>
+
+                <!-- Sample Analytics Section -->
+                <h2 class="section-header">Sample Analytics</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="totalSamples">0</div>
+                        <div class="kpi-label">Total Samples</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="avgSamplesPerBatch">0</div>
+                        <div class="kpi-label">Avg. Samples per Batch</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="sampleSuccessRate">0%</div>
+                        <div class="kpi-label">Sample Success Rate</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="pendingSamples">0</div>
+                        <div class="kpi-label">Pending Samples</div>
+                    </div>
+                </div>
                 <div class="charts-grid">
                     <div class="chart-box">
-                        <h3>Daily Shipment Volume</h3>
+                        <h3>Sample Type Distribution</h3>
                         <div class="chart-container">
-                            <canvas id="shipmentsChart"></canvas>
+                            <canvas id="sampleTypesChart"></canvas>
                         </div>
                     </div>
                     <div class="chart-box">
-                        <h3>Shipment Status Distribution</h3>
+                        <h3>Daily Sample Volume</h3>
                         <div class="chart-container">
-                            <canvas id="statusChart"></canvas>
+                            <canvas id="dailySamplesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Batch Analytics Section -->
+                <h2 class="section-header">Batch Analytics</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="totalBatches">0</div>
+                        <div class="kpi-label">Total Batches</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="avgProcessingTime">0h</div>
+                        <div class="kpi-label">Avg. Processing Time</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="batchSuccessRate">0%</div>
+                        <div class="kpi-label">Batch Success Rate</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="activeBatches">0</div>
+                        <div class="kpi-label">Active Batches</div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-box">
+                        <h3>Batch Status Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="batchStatusChart"></canvas>
                         </div>
                     </div>
                     <div class="chart-box">
-                        <h3>Receiving Lab Distribution</h3>
+                        <h3>Average Processing Times by Type</h3>
                         <div class="chart-container">
-                            <canvas id="labChart"></canvas>
+                            <canvas id="processingTimesChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Analytics Section -->
+                <h2 class="section-header">Location Analytics</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="activeLocations">0</div>
+                        <div class="kpi-label">Active Locations</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="avgDeliveryTime">0h</div>
+                        <div class="kpi-label">Avg. Delivery Time</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="routeEfficiency">0%</div>
+                        <div class="kpi-label">Route Efficiency</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="activeRoutes">0</div>
+                        <div class="kpi-label">Active Routes</div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-box">
+                        <h3>Top Sending Clinics</h3>
+                        <div class="chart-container">
+                            <canvas id="topClinicsChart"></canvas>
                         </div>
                     </div>
                     <div class="chart-box">
-                        <h3>Courier Type Distribution</h3>
+                        <h3>Top Receiving Labs</h3>
                         <div class="chart-container">
-                            <canvas id="courierChart"></canvas>
+                            <canvas id="topLabsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Location Map Analytics Section -->
+                <h2 class="section-header">Location Map Analytics</h2>
+                <div class="chart-box map-container">
+                    <h3>Facility Distribution by State</h3>
+                    <div id="map-legend" class="d-flex justify-content-end mb-2">
+                        <div class="me-3"><span class="legend-dot clinic"></span> Clinics</div>
+                        <div class="me-3"><span class="legend-dot lab"></span> Labs</div>
+                        <div><span class="legend-dot both"></span> Both</div>
+                    </div>
+                    <div id="usa-map"></div>
+                </div>
+
+                <!-- Alert Analytics Section -->
+                <h2 class="section-header">Alert Analytics</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="totalAlerts">0</div>
+                        <div class="kpi-label">Total Alerts</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="avgResolutionTime">0h</div>
+                        <div class="kpi-label">Avg. Resolution Time</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="openAlerts">0</div>
+                        <div class="kpi-label">Open Alerts</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-value" id="alertResolutionRate">0%</div>
+                        <div class="kpi-label">Resolution Rate</div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-box">
+                        <h3>Alert Type Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="alertTypesChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-box">
+                        <h3>Alert Trends Over Time</h3>
+                        <div class="chart-container">
+                            <canvas id="alertTrendsChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -56,266 +313,475 @@
     </main>
 
     <script>
-        // User profile dropdown functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const profileTrigger = document.querySelector('.user-profile-trigger');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Setup date filters
+            setupDateFilters();
+
+            // Set initial dates
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+
+            // Load initial data
+            const startDate = thirtyDaysAgo.toISOString().split('T')[0];
+            const endDate = today.toISOString().split('T')[0];
             
-            profileTrigger.addEventListener('click', function(e) {
-                e.stopPropagation();
-                dropdownMenu.classList.toggle('show');
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function() {
-                dropdownMenu.classList.remove('show');
-            });
+            try {
+                const response = await fetch(`/api/analytics?start=${startDate}&end=${endDate}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch analytics data');
+                }
+                const data = await response.json();
+                
+                // Initialize all charts with the fetched data
+                initializeSampleCharts(data.samples);
+                initializeBatchCharts(data.batches);
+                initializeLocationCharts(data.locations);
+                initializeAlertCharts(data.alerts);
+                updateKPIs(data);
+                
+                // Initialize USA Map
+                await initializeUSAMap(data);
+
+                // Set the date inputs
+                document.getElementById('startDate').value = startDate;
+                document.getElementById('endDate').value = endDate;
+            } catch (error) {
+                console.error('Error loading analytics data:', error);
+            }
         });
 
-        // Charts functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get the data passed from Flask
-            const chartDates = {{ dates|tojson|safe }};
-            const chartCounts = {{ counts|tojson|safe }};
-            const statusData = {{ status_data|tojson|safe }};
-            const courierData = {{ courier_data|tojson|safe }};
-            const labData = {{ lab_data|tojson|safe }};
+        function initializeSampleCharts(data) {
+            // Sample Types Chart
+            new Chart(document.getElementById('sampleTypesChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.types.labels,
+                    datasets: [{
+                        data: data.types.values,
+                        backgroundColor: [
+                            '#3498db',
+                            '#2ecc71',
+                            '#f1c40f',
+                            '#e74c3c'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
 
-            // Store chart instances
-            let shipmentsChart, statusChart, labChart, courierChart;
-
-            // Function to initialize charts
-            function initializeCharts(filteredDates = null, filteredCounts = null, filteredStatus = null, filteredLab = null, filteredCourier = null) {
-                // Use filtered data if provided, otherwise use original data
-                const dates = filteredDates || chartDates;
-                const counts = filteredCounts || chartCounts;
-                const status = filteredStatus || statusData;
-                const lab = filteredLab || labData;
-                const courier = filteredCourier || courierData;
-
-                // Destroy existing charts if they exist
-                if (shipmentsChart) shipmentsChart.destroy();
-                if (statusChart) statusChart.destroy();
-                if (labChart) labChart.destroy();
-                if (courierChart) courierChart.destroy();
-
-                // Initialize Shipments Chart
-                shipmentsChart = new Chart(document.getElementById('shipmentsChart').getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: dates,
-                        datasets: [{
-                            label: 'Number of Shipments',
-                            data: counts,
-                            borderColor: '#34495e',
-                            backgroundColor: 'rgba(52, 73, 94, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4
-                        }]
+            // Daily Samples Chart
+            new Chart(document.getElementById('dailySamplesChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.daily.labels,
+                    datasets: [{
+                        label: 'Number of Samples',
+                        data: data.daily.values,
+                        borderColor: '#3498db',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            title: { display: false },
-                            legend: { position: 'bottom' }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { stepSize: 1 }
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function initializeBatchCharts(data) {
+            // Batch Status Distribution Chart
+            new Chart(document.getElementById('batchStatusChart').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: data.status.labels,
+                    datasets: [{
+                        data: data.status.values,
+                        backgroundColor: [
+                            '#2ecc71',  // Delivered
+                            '#3498db',  // In Transit
+                            '#f1c40f',  // Pending
+                            '#e74c3c'   // Cancelled
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Processing Times Chart
+            new Chart(document.getElementById('processingTimesChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.processingTimes.labels,
+                    datasets: [{
+                        label: 'Average Hours',
+                        data: data.processingTimes.values,
+                        backgroundColor: '#3498db'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Hours'
                             }
                         }
                     }
-                });
+                }
+            });
+        }
 
-                // Initialize Status Distribution Chart
-                statusChart = new Chart(document.getElementById('statusChart').getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: status.labels,
-                        datasets: [{
-                            data: status.values,
-                            backgroundColor: [
-                                '#3498db',  // In Transit - Blue
-                                '#2ecc71',  // Delivered - Green
-                                '#f1c40f',  // Delayed - Yellow
-                                '#e74c3c'   // Cancelled - Red
-                            ],
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
-                        }]
+        function initializeLocationCharts(data) {
+            // Top Clinics Chart
+            new Chart(document.getElementById('topClinicsChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.topClinics.labels,
+                    datasets: [{
+                        label: 'Number of Batches',
+                        data: data.topClinics.values,
+                        backgroundColor: '#2ecc71'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'bottom' }
-                        },
-                        cutout: '60%'
+                    scales: {
+                        y: { beginAtZero: true }
                     }
-                });
+                }
+            });
 
-                // Initialize Lab Distribution Chart
-                labChart = new Chart(document.getElementById('labChart').getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: lab.labels,
-                        datasets: [{
-                            label: 'Shipments per Lab',
-                            data: lab.values,
-                            backgroundColor: '#3498db',
-                            borderColor: '#2980b9',
-                            borderWidth: 1
-                        }]
+            // Top Labs Chart
+            new Chart(document.getElementById('topLabsChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: data.topLabs.labels,
+                    datasets: [{
+                        label: 'Number of Batches',
+                        data: data.topLabs.values,
+                        backgroundColor: '#3498db'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { stepSize: 1 }
-                            }
-                        }
+                    scales: {
+                        y: { beginAtZero: true }
                     }
-                });
+                }
+            });
+        }
 
-                // Initialize Courier Distribution Chart
-                courierChart = new Chart(document.getElementById('courierChart').getContext('2d'), {
-                    type: 'pie',
-                    data: {
-                        labels: courier.labels,
-                        datasets: [{
-                            data: courier.values,
-                            backgroundColor: [
-                                '#34495e',
-                                '#3498db',
-                                '#2ecc71'
-                            ],
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
-                        }]
+        function initializeAlertCharts(data) {
+            // Alert Types Chart
+            new Chart(document.getElementById('alertTypesChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.types.labels,
+                    datasets: [{
+                        data: data.types.values,
+                        backgroundColor: [
+                            '#e74c3c',  // Critical
+                            '#f1c40f',  // Warning
+                            '#3498db',  // Info
+                            '#2ecc71'   // Success
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Alert Trends Chart
+            new Chart(document.getElementById('alertTrendsChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: data.trends.labels,
+                    datasets: [{
+                        label: 'Number of Alerts',
+                        data: data.trends.values,
+                        borderColor: '#e74c3c',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'bottom' }
-                        }
+                    scales: {
+                        y: { beginAtZero: true }
                     }
-                });
-            }
+                }
+            });
+        }
 
-            // Initialize charts with original data
-            initializeCharts();
+        function updateKPIs(data) {
+            // Sample KPIs
+            document.getElementById('totalSamples').textContent = data.samples.total;
+            document.getElementById('avgSamplesPerBatch').textContent = data.samples.average;
+            document.getElementById('sampleSuccessRate').textContent = data.samples.successRate + '%';
+            document.getElementById('pendingSamples').textContent = data.samples.pending;
 
-            // Date filter functionality
+            // Batch KPIs
+            document.getElementById('totalBatches').textContent = data.batches.total;
+            document.getElementById('avgProcessingTime').textContent = data.batches.avgProcessingTime + 'h';
+            document.getElementById('batchSuccessRate').textContent = data.batches.successRate + '%';
+            document.getElementById('activeBatches').textContent = data.batches.active;
+
+            // Location KPIs
+            document.getElementById('activeLocations').textContent = data.locations.active;
+            document.getElementById('avgDeliveryTime').textContent = data.locations.avgDeliveryTime + 'h';
+            document.getElementById('routeEfficiency').textContent = data.locations.routeEfficiency + '%';
+            document.getElementById('activeRoutes').textContent = data.locations.activeRoutes;
+
+            // Alert KPIs
+            document.getElementById('totalAlerts').textContent = data.alerts.total;
+            document.getElementById('avgResolutionTime').textContent = data.alerts.avgResolutionTime + 'h';
+            document.getElementById('openAlerts').textContent = data.alerts.open;
+            document.getElementById('alertResolutionRate').textContent = data.alerts.resolutionRate + '%';
+        }
+
+        function setupDateFilters() {
             const startDate = document.getElementById('startDate');
             const endDate = document.getElementById('endDate');
             const applyFilter = document.getElementById('applyFilter');
             const resetFilter = document.getElementById('resetFilter');
 
-            // Set initial date range
-            if (chartDates.length > 0) {
-                startDate.value = chartDates[0];
-                endDate.value = chartDates[chartDates.length - 1];
-            }
-
-            // Function to filter data based on date range
-            function filterDataByDateRange(start, end) {
-                const startTimestamp = new Date(start).getTime();
-                const endTimestamp = new Date(end).getTime();
-
-                // Filter indices based on date range
-                const filteredIndices = chartDates.reduce((indices, date, index) => {
-                    const timestamp = new Date(date).getTime();
-                    if (timestamp >= startTimestamp && timestamp <= endTimestamp) {
-                        indices.push(index);
-                    }
-                    return indices;
-                }, []);
-
-                // Filter data for each chart
-                const filteredDates = filteredIndices.map(i => chartDates[i]);
-                const filteredCounts = filteredIndices.map(i => chartCounts[i]);
-
-                // Calculate total shipments in the filtered date range
-                const totalFilteredShipments = filteredCounts.reduce((sum, count) => sum + count, 0);
-
-                // Filter status data - recalculate percentages based on filtered date range
-                const filteredStatus = {
-                    labels: statusData.labels,
-                    values: statusData.values.map((_, index) => {
-                        const statusCount = filteredIndices.reduce((sum, i) => {
-                            // Each day's contribution to this status
-                            return sum + (chartCounts[i] * (statusData.values[index] / chartCounts.reduce((s, c) => s + c, 0)));
-                        }, 0);
-                        return Math.round(statusCount); // Round to whole numbers
-                    })
-                };
-
-                // Filter lab data - recalculate based on filtered date range
-                const filteredLab = {
-                    labels: labData.labels,
-                    values: labData.values.map((_, index) => {
-                        const labCount = filteredIndices.reduce((sum, i) => {
-                            // Each day's contribution to this lab
-                            return sum + (chartCounts[i] * (labData.values[index] / chartCounts.reduce((s, c) => s + c, 0)));
-                        }, 0);
-                        return Math.round(labCount); // Round to whole numbers
-                    })
-                };
-
-                // Filter courier data - recalculate based on filtered date range
-                const filteredCourier = {
-                    labels: courierData.labels,
-                    values: courierData.values.map((_, index) => {
-                        const courierCount = filteredIndices.reduce((sum, i) => {
-                            // Each day's contribution to this courier
-                            return sum + (chartCounts[i] * (courierData.values[index] / chartCounts.reduce((s, c) => s + c, 0)));
-                        }, 0);
-                        return Math.round(courierCount); // Round to whole numbers
-                    })
-                };
-
-                return {
-                    dates: filteredDates,
-                    counts: filteredCounts,
-                    status: filteredStatus,
-                    lab: filteredLab,
-                    courier: filteredCourier
-                };
-            }
-
-            // Apply filter button click handler
-            applyFilter.addEventListener('click', function() {
+            // Add filter functionality
+            applyFilter.addEventListener('click', async function() {
                 const start = startDate.value;
                 const end = endDate.value;
-                
                 if (start && end) {
-                    const filteredData = filterDataByDateRange(start, end);
-                    initializeCharts(
-                        filteredData.dates,
-                        filteredData.counts,
-                        filteredData.status,
-                        filteredData.lab,
-                        filteredData.courier
-                    );
+                    const response = await fetch(`/api/analytics?start=${start}&end=${end}`);
+                    const data = await response.json();
+                    
+                    // Reinitialize charts with new data
+                    initializeSampleCharts(data.samples);
+                    initializeBatchCharts(data.batches);
+                    initializeLocationCharts(data.locations);
+                    initializeAlertCharts(data.alerts);
+                    updateKPIs(data);
                 }
             });
 
-            // Reset filter button click handler
             resetFilter.addEventListener('click', function() {
-                startDate.value = chartDates[0];
-                endDate.value = chartDates[chartDates.length - 1];
-                initializeCharts();
+                startDate.value = thirtyDaysAgo.toISOString().split('T')[0];
+                endDate.value = today.toISOString().split('T')[0];
+                applyFilter.click();
             });
-        });
+        }
+
+        // Initialize USA Map
+        async function initializeUSAMap(analyticsData) {
+            try {
+                console.log('Initializing USA Map...');
+                
+                // Load US states TopoJSON data
+                const response = await fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json');
+                if (!response.ok) {
+                    throw new Error('Failed to load US map data');
+                }
+                const us = await response.json();
+                
+                // First, fetch facilities data to get state mappings
+                const facilitiesResponse = await fetch('/api/facilities');
+                const facilitiesData = await facilitiesResponse.json();
+                
+                // Create facility ID to state mappings
+                const facilityToState = {};
+                
+                // Process clinics
+                facilitiesData.clinics.forEach(clinic => {
+                    const state = clinic.location.split(', ').pop().split(' ')[0];
+                    facilityToState[clinic.facilityId] = state;
+                });
+                
+                // Process labs
+                facilitiesData.labs.forEach(lab => {
+                    const state = lab.location.split(', ').pop().split(' ')[0];
+                    facilityToState[lab.facilityId] = state;
+                });
+
+                console.log('Facility to state mapping:', facilityToState);
+                
+                // Initialize state statistics
+                const stateStats = {
+                    'MA': { clinics: 0, labs: 0, name: 'Massachusetts', clinicBatches: 0, labBatches: 0 },
+                    'NY': { clinics: 0, labs: 0, name: 'New York', clinicBatches: 0, labBatches: 0 },
+                    'VA': { clinics: 0, labs: 0, name: 'Virginia', clinicBatches: 0, labBatches: 0 },
+                    'RI': { clinics: 0, labs: 0, name: 'Rhode Island', clinicBatches: 0, labBatches: 0 },
+                    'NH': { clinics: 0, labs: 0, name: 'New Hampshire', clinicBatches: 0, labBatches: 0 },
+                    'ME': { clinics: 0, labs: 0, name: 'Maine', clinicBatches: 0, labBatches: 0 }
+                };
+
+                // Count facilities by state
+                facilitiesData.clinics.forEach(clinic => {
+                    const state = clinic.location.split(', ').pop().split(' ')[0];
+                    if (stateStats[state]) {
+                        stateStats[state].clinics++;
+                    }
+                });
+
+                facilitiesData.labs.forEach(lab => {
+                    const state = lab.location.split(', ').pop().split(' ')[0];
+                    if (stateStats[state]) {
+                        stateStats[state].labs++;
+                    }
+                });
+
+                // Fetch batches data
+                const batchesResponse = await fetch('/api/batches');
+                const batchesData = await batchesResponse.json();
+                
+                // Process batches to count by state using facility mappings
+                batchesData.forEach(batch => {
+                    const originState = facilityToState[batch.origin];
+                    const destinationState = facilityToState[batch.destination];
+                    
+                    if (originState && stateStats[originState]) {
+                        stateStats[originState].clinicBatches++;
+                    }
+                    if (destinationState && stateStats[destinationState]) {
+                        stateStats[destinationState].labBatches++;
+                    }
+                });
+
+                console.log('State statistics:', stateStats);
+
+                // State FIPS to postal code mapping
+                const stateIdToPostal = {
+                    "01": "AL", "02": "AK", "04": "AZ", "05": "AR", "06": "CA", "08": "CO", "09": "CT", "10": "DE", 
+                    "11": "DC", "12": "FL", "13": "GA", "15": "HI", "16": "ID", "17": "IL", "18": "IN", "19": "IA", 
+                    "20": "KS", "21": "KY", "22": "LA", "23": "ME", "24": "MD", "25": "MA", "26": "MI", "27": "MN", 
+                    "28": "MS", "29": "MO", "30": "MT", "31": "NE", "32": "NV", "33": "NH", "34": "NJ", "35": "NM", 
+                    "36": "NY", "37": "NC", "38": "ND", "39": "OH", "40": "OK", "41": "OR", "42": "PA", "44": "RI", 
+                    "45": "SC", "46": "SD", "47": "TN", "48": "TX", "49": "UT", "50": "VT", "51": "VA", "53": "WA", 
+                    "54": "WV", "55": "WI", "56": "WY"
+                };
+
+                // Set up the map container
+                const width = document.getElementById('usa-map').offsetWidth;
+                const height = 500;
+                
+                // Clear any existing SVG and tooltips
+                d3.select('#usa-map').html('');
+                d3.selectAll('.state-tooltip').remove();
+                
+                const svg = d3.select('#usa-map')
+                    .append('svg')
+                    .attr('width', '100%')
+                    .attr('height', '100%')
+                    .attr('viewBox', [0, 0, width, height])
+                    .style('background-color', '#f8f9fa');
+
+                // Create projection and path generator
+                const projection = d3.geoAlbersUsa()
+                    .fitSize([width, height], topojson.feature(us, us.objects.states));
+                
+                const path = d3.geoPath().projection(projection);
+
+                // Create tooltip
+                const tooltip = d3.select('body')
+                    .append('div')
+                    .attr('class', 'state-tooltip')
+                    .style('opacity', 0)
+                    .style('position', 'absolute')
+                    .style('pointer-events', 'none')
+                    .style('z-index', 1000);
+
+                // Draw states
+                const states = svg.append('g')
+                    .selectAll('path')
+                    .data(topojson.feature(us, us.objects.states).features)
+                    .enter()
+                    .append('path')
+                    .attr('class', 'state')
+                    .attr('d', path)
+                    .style('fill', function(d) {
+                        const stateId = d.id.toString().padStart(2, '0');
+                        const postal = stateIdToPostal[stateId];
+                        const stateData = stateStats[postal];
+                        
+                        if (!stateData) return '#eee';
+                        if (stateData.clinics > 0 && stateData.labs > 0) return '#9b59b6';
+                        if (stateData.clinics > 0) return '#3498db';
+                        if (stateData.labs > 0) return '#2ecc71';
+                        return '#eee';
+                    })
+                    .style('stroke', '#fff')
+                    .style('stroke-width', '1');
+
+                // Add hover events
+                states.on('mouseover', function(event, d) {
+                    const stateId = d.id.toString().padStart(2, '0');
+                    const postal = stateIdToPostal[stateId];
+                    const stateData = stateStats[postal];
+                    if (stateData) {
+                        tooltip.transition()
+                            .duration(200)
+                            .style('opacity', .9);
+
+                        tooltip.html(`
+                            <strong>${stateData.name}</strong><br>
+                            ${stateData.clinics > 0 ? `Clinics: ${stateData.clinics} (${stateData.clinicBatches} batches sent)<br>` : ''}
+                            ${stateData.labs > 0 ? `Labs: ${stateData.labs} (${stateData.labBatches} batches received)` : ''}
+                        `)
+                            .style('left', (event.pageX + 10) + 'px')
+                            .style('top', (event.pageY - 28) + 'px');
+                    }
+                })
+                .on('mouseout', function() {
+                    tooltip.transition()
+                        .duration(500)
+                        .style('opacity', 0);
+                });
+
+                console.log('Map initialization complete');
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
+        }
     </script>
 </body>
 </html> 
