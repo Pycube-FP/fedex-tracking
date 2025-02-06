@@ -782,6 +782,28 @@
                 console.error('Error initializing map:', error);
             }
         }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            try {
+                // Parse as ISO string
+                let date = new Date(dateStr);
+                if (!isNaN(date.getTime())) {
+                    return date.toLocaleString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        second: 'numeric',
+                        hour12: true
+                    });
+                }
+            } catch (error) {
+                console.error('Error formatting date:', error);
+            }
+            return dateStr; // Return original string if parsing fails
+        }
     </script>
 </body>
 </html> 

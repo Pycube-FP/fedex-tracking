@@ -2,7 +2,7 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for, s
 import boto3
 import logging
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 import os
 from dotenv import load_dotenv
@@ -364,6 +364,16 @@ def get_tracking_details(tracking_number):
         logging.error(f"Error fetching tracking details: {e}")
         return jsonify({'error': 'Failed to fetch tracking details'}), 500
 
+def parse_date(date_str):
+    try:
+        # Try parsing as ISO 8601
+        dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+    except ValueError:
+        # Fallback to parsing as '%m/%d/%Y, %I:%M:%S %p'
+        dt = datetime.strptime(date_str, '%m/%d/%Y, %I:%M:%S %p')
+    # Return offset-naive datetime
+    return dt.replace(tzinfo=None)
+
 @app.route('/api/analytics')
 def get_analytics():
     try:
@@ -382,17 +392,17 @@ def get_analytics():
 
         # Filter data by date range if provided
         if start_date and end_date:
-            start = datetime.strptime(start_date, '%Y-%m-%d')
-            end = datetime.strptime(end_date, '%Y-%m-%d')
+            start = parse_date(start_date)
+            end = parse_date(end_date)
             
             batches_data = [b for b in batches_data 
-                          if start <= datetime.strptime(b['createdDate'].split(',')[0], '%m/%d/%Y') <= end]
+                          if start <= parse_date(b['createdDate']) <= end]
             
             alerts_data = [a for a in alerts_data 
-                         if start <= datetime.strptime(a['date'].split('T')[0], '%Y-%m-%d') <= end]
+                         if start <= parse_date(a['date']) <= end]
             
             deliveries_data = [d for d in deliveries_data 
-                             if start <= datetime.strptime(d['createdAt'].split(',')[0], '%m/%d/%Y') <= end]
+                             if start <= parse_date(d['createdAt']) <= end]
 
         # Process Sample Analytics
         sample_types = defaultdict(int)
@@ -421,11 +431,11 @@ def get_analytics():
             
             # Calculate processing time for completed batches
             if batch['status'] == 'Delivered' and 'createdDate' in batch:
-                created = datetime.strptime(batch['createdDate'], '%m/%d/%Y, %I:%M:%S %p')
+                created = parse_date(batch['createdDate'])
                 # Find matching delivery in expected_deliveries for actual delivery date
                 delivery = next((d for d in deliveries_data if d['batchId'] == batch['id']), None)
                 if delivery and 'shippedAt' in delivery:
-                    delivered = datetime.strptime(delivery['shippedAt'], '%m/%d/%Y, %I:%M:%S %p')
+                    delivered = parse_date(delivery['shippedAt'])
                     processing_time = (delivered - created).total_seconds() / 3600  # hours
                     processing_times[batch['status']].append(processing_time)
 
@@ -456,8 +466,8 @@ def get_analytics():
             
             # Calculate resolution time for completed alerts
             if alert['status'] == 'Completed' and 'completedDate' in alert:
-                created = datetime.strptime(alert['date'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                completed = datetime.strptime(alert['completedDate'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                created = parse_date(alert['date'])
+                completed = parse_date(alert['completedDate'])
                 resolution_time = (completed - created).total_seconds() / 3600  # hours
                 resolution_times.append(resolution_time)
 
