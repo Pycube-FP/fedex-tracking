@@ -265,6 +265,78 @@
             </div>
         </div>
     </div>
+    <style>
+        /* User profile dropdown styles */
+        .user-profile-dropdown {
+            position: relative;
+        }
+
+        .user-profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px;
+            cursor: pointer;
+        }
+
+        .profile-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .user-details {
+            text-align: left;
+        }
+
+        .user-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            min-width: 200px;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            text-decoration: none;
+        }
+
+        .dropdown-item i {
+            width: 16px;
+            text-align: center;
+            color: #6c757d;
+        }
+    </style>
     <script>
         // Function to format date to MMM DD, YYYY
         function formatDate(dateStr) {
@@ -458,22 +530,6 @@
 
             filterInputs.forEach(input => {
                 input.addEventListener('input', filterTable);
-            });
-        });
-
-        // User profile dropdown functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const profileTrigger = document.querySelector('.user-profile-trigger');
-            const dropdownMenu = document.querySelector('.dropdown-menu');
-            
-            profileTrigger.addEventListener('click', function(e) {
-                e.stopPropagation();
-                dropdownMenu.classList.toggle('show');
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function() {
-                dropdownMenu.classList.remove('show');
             });
         });
 
