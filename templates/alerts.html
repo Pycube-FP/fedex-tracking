@@ -128,7 +128,7 @@
         }
         .badge.bg-warning {
             background-color: #f1c40f !important;
-            color: #2c3e50;
+            color: #000000 !important;
         }
         .badge.bg-info {
             background-color: #3498db !important;
@@ -1017,7 +1017,8 @@
                     'Damaged Sample': 'bg-critical',
                     'Multiple Issues': 'bg-critical',
                     'Shipment Delayed': 'bg-warning',
-                    'Damaged Container': 'bg-critical'
+                    'Damaged Container': 'bg-critical',
+                    'Stale Pending': 'bg-warning'
                 };
                 return typeMap[type] || 'bg-info';
             }

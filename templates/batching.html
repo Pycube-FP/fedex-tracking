@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FedEx Tracking - Batching</title>
+    <title>Batching - FedEx Tracking</title>
     
     <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,7 +17,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/static/styles.css">
-    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
     <!-- HTML5 QR Code Scanner -->
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -67,7 +67,59 @@
         .section-header h2 {
             margin: 0;
             color: #2c3e50;
-            font-size: 1.5rem;
+            font-size: 2rem;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .date-filter {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .date-filter input {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 180px;
+            font-size: 0.9rem;
+            height: 36px;
+        }
+        .date-filter button {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            min-width: 110px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+        .date-filter button.btn-primary {
+            background-color: #34495e;
+            color: white;
+            box-shadow: 0 2px 4px rgba(52, 73, 94, 0.1);
+        }
+        .date-filter button.btn-primary:hover {
+            background-color: #2c3e50;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(52, 73, 94, 0.2);
+        }
+        .date-filter button.btn-secondary {
+            background-color: #f8f9fa;
+            color: #34495e;
+            border: 1px solid #e0e0e0;
+        }
+        .date-filter button.btn-secondary:hover {
+            background-color: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         .batch-creation-section {
             width: 80%;
@@ -229,6 +281,30 @@
             white-space: nowrap;
             font-size: 0.9rem;
             letter-spacing: 0.5px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        .table thead th:hover {
+            background-color: #2c3e50;
+        }
+        .table thead th.sorting:after {
+            content: '↕';
+            position: absolute;
+            right: 8px;
+            opacity: 0.5;
+        }
+        .table thead th.sorting-asc:after {
+            content: '↑';
+            position: absolute;
+            right: 8px;
+            opacity: 1;
+        }
+        .table thead th.sorting-desc:after {
+            content: '↓';
+            position: absolute;
+            right: 8px;
+            opacity: 1;
         }
         .table thead th:first-child {
             border-top-left-radius: 12px;
@@ -585,6 +661,65 @@
         .photo-upload-container input[type="file"] {
             display: none;
         }
+
+        /* Date Filter Styles */
+        .date-filter {
+            background-color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .date-filter .form-control {
+            border: 2px solid #edf2f7;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background-color: #f8fafc;
+        }
+
+        .date-filter .form-control:focus {
+            border-color: #34495e;
+            box-shadow: 0 0 0 3px rgba(52, 73, 94, 0.1);
+            outline: none;
+            background-color: white;
+        }
+
+        /* Update button styles */
+        .date-filter .btn {
+            font-size: 0.95rem;
+            padding: 8px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .date-filter .btn-primary {
+            background-color: #34495e;
+            border: none;
+        }
+
+        .date-filter .btn-primary:hover {
+            background-color: #2c3e50;
+        }
+
+        .date-filter .btn-light {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        .date-filter .btn-light:hover {
+            background-color: #f8f9fa;
+            border-color: #dee2e6;
+            color: #495057;
+        }
+
+        .date-filter .d-flex.gap-2 {
+            gap: 0.5rem !important;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </head>
@@ -606,7 +741,7 @@
                 </div>
                 <div class="kpi batch-kpi">
                     <div class="kpi-content">
-                        Shipped Batches<br><span id="shippedBatches">0</span>
+                        Delivered Batches<br><span id="shippedBatches">0</span>
                     </div>
                 </div>
                 <div class="kpi batch-kpi">
@@ -677,8 +812,7 @@
                                                         <i class="fas fa-camera"></i> Scan
                                                     </button>
                                                     <select class="form-select" id="sampleType">
-                                                        <option value="" disabled selected>Sample Type</option>
-                                                        <option value="biopsy">Biopsy (Formalin-Fixed)</option>
+                                                        <option value="biopsy" selected>Biopsy (Formalin-Fixed)</option>
                                                         <option value="slides">Glass Slides</option>
                                                         <option value="other">Other</option>
                                                     </select>
@@ -773,17 +907,35 @@
                         </div>
                     </div>
                 </div>
+                <!-- Date Filter Section -->
+                <div class="date-filter mb-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <label class="mb-0">Date Range:</label>
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" id="startDate" placeholder="Start Date">
+                        </div>
+                        <div class="col-auto">
+                            <input type="text" class="form-control" id="endDate" placeholder="End Date">
+                        </div>
+                        <div class="col-auto d-flex gap-2">
+                            <button class="btn btn-primary px-4" id="applyDateFilter" style="background-color: #34495e; border: none;">Apply Filter</button>
+                            <button class="btn btn-light px-4" id="clearDateFilter" style="color: #6c757d; background-color: #fff; border: 1px solid #dee2e6;">Clear</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="table-container">
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Batch ID</th>
-                                <th>Tracking Number</th>
-                                <th>Origin</th>
-                                <th>Destination</th>
-                                <th>Samples</th>
-                                <th>Created Date</th>
-                                <th>Status</th>
+                                <th class="sorting" onclick="sortTable(0)">Batch ID</th>
+                                <th class="sorting" onclick="sortTable(1)">Tracking Number</th>
+                                <th class="sorting" onclick="sortTable(2)">Origin</th>
+                                <th class="sorting" onclick="sortTable(3)">Destination</th>
+                                <th class="sorting" onclick="sortTable(4)">Samples</th>
+                                <th class="sorting" onclick="sortTable(5)">Created Date</th>
+                                <th class="sorting" onclick="sortTable(6)">Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -1138,7 +1290,7 @@
             document.getElementById('pendingBatches').textContent = 
                 batches.filter(b => b.status === 'Pending').length;
             document.getElementById('shippedBatches').textContent = 
-                batches.filter(b => ['Shipped', 'In Transit', 'Out For Delivery', 'Shipment Picked Up'].includes(b.status)).length;
+                batches.filter(b => b.status === 'Delivered').length;
             document.getElementById('cancelledBatches').textContent = 
                 batches.filter(b => ['Cancelled', 'Shipment Cancelled'].includes(b.status)).length;
             updateTotalSamples();
@@ -1496,7 +1648,19 @@
                 document.querySelector('.batch-form').style.display = 'block';
                 this.style.display = 'none';
                 // Initialize batch ID when form is shown
-            document.getElementById('batchId').value = generateBatchId();
+                document.getElementById('batchId').value = generateBatchId();
+                
+                // Set default date and time for collection date
+                const now = new Date();
+                const collectionDateInput = document.getElementById('collectionDate');
+                const fp = collectionDateInput._flatpickr;
+                if (fp) {
+                    fp.setDate(now);
+                    fp.input.value = fp.formatDate(now, fp.config.dateFormat);
+                    if (fp.altInput) {
+                        fp.altInput.value = fp.formatDate(now, fp.config.altFormat);
+                    }
+                }
             });
 
             // Fetch facilities data
@@ -1584,7 +1748,6 @@
                 
                 // Clear input fields
                 sampleIdInput.value = '';
-                sampleTypeSelect.value = '';
                 document.getElementById('patientRef').value = '';
                 document.getElementById('mrn').value = '';
                 document.getElementById('collectionDate').value = '';
@@ -1760,30 +1923,28 @@
                 minuteIncrement: 1,
                 allowInput: true,
                 clickOpens: true,
-                closeOnSelect: false,
-                static: true,
-                appendTo: document.getElementById('collectionDatePicker'),
-                plugins: [{
-                    onOpen: function(selectedDates, dateStr, instance) {
-                        // Create buttons container if it doesn't exist
-                        if (!instance.calendarContainer.querySelector('.flatpickr-buttons')) {
-                            const buttonContainer = document.createElement('div');
-                            buttonContainer.className = 'flatpickr-buttons';
-                            buttonContainer.style.cssText = 'display: flex; justify-content: flex-end; padding: 10px; border-top: 1px solid #e9ecef;';
-                            
-                            const closeButton = document.createElement('button');
-                            closeButton.textContent = 'Close';
-                            closeButton.className = 'btn btn-primary btn-sm';
-                            closeButton.style.cssText = 'background-color: #34495e; border: none; padding: 5px 15px; border-radius: 4px; color: white; cursor: pointer;';
-                            closeButton.onclick = function() {
-                                instance.close();
-                            };
-                            
-                            buttonContainer.appendChild(closeButton);
-                            instance.calendarContainer.appendChild(buttonContainer);
+                defaultDate: new Date(),
+                noCalendar: false,
+                altInput: true,
+                altFormat: "m/d/Y h:i K",
+                disableMobile: true,
+                onReady: function(selectedDates, dateStr, instance) {
+                    const now = new Date();
+                    instance.setDate(now);
+                    instance.input.value = instance.formatDate(now, instance.config.dateFormat);
+                    if (instance.altInput) {
+                        instance.altInput.value = instance.formatDate(now, instance.config.altFormat);
+                    }
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    // Ensure the value is properly formatted and displayed
+                    if (selectedDates[0]) {
+                        instance.input.value = instance.formatDate(selectedDates[0], instance.config.dateFormat);
+                        if (instance.altInput) {
+                            instance.altInput.value = instance.formatDate(selectedDates[0], instance.config.altFormat);
                         }
                     }
-                }]
+                }
             });
 
             // Add close button functionality
@@ -2272,6 +2433,190 @@
                 return `B${timestamp}${random}`;
             }
         });
+
+        // Initialize date pickers with better configuration
+        flatpickr("#startDate", {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                // When start date changes, update the minimum date for end date picker
+                if (selectedDates[0]) {
+                    endDatePicker.set('minDate', selectedDates[0]);
+                }
+            }
+        });
+        
+        const endDatePicker = flatpickr("#endDate", {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+            onChange: function(selectedDates, dateStr, instance) {
+                // When end date changes, update the maximum date for start date picker
+                if (selectedDates[0]) {
+                    startDatePicker.set('maxDate', selectedDates[0]);
+                }
+            }
+        });
+
+        // Add event listeners for filter buttons
+        document.getElementById('applyDateFilter').addEventListener('click', function() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate && !endDate) {
+                alert('Please select at least one date');
+                return;
+            }
+            
+            // Convert dates to timestamps for comparison
+            const startTimestamp = startDate ? new Date(startDate + 'T00:00:00').getTime() : 0;
+            const endTimestamp = endDate ? new Date(endDate + 'T23:59:59').getTime() : Infinity;
+            
+            const filteredBatches = batches.filter(batch => {
+                const batchDate = new Date(batch.createdDate).getTime();
+                return batchDate >= startTimestamp && batchDate <= endTimestamp;
+            });
+            
+            // Update the table with filtered data
+            const batchTableBody = document.getElementById('batchTableBody');
+            batchTableBody.innerHTML = filteredBatches.map(batch => `
+                <tr data-batch-id="${batch.id}">
+                    <td>${batch.id}</td>
+                    <td>${batch.trackingNumber || '<span class="text-muted">Not assigned</span>'}</td>
+                    <td>${batch.origin}</td>
+                    <td>${batch.destination}</td>
+                    <td>${batch.samples.length}</td>
+                    <td>${batch.createdDate}</td>
+                    <td><span class="status-badge ${getStatusColor(batch.status)}">${batch.status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-info" onclick="viewBatch('${batch.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm ${batch.trackingNumber ? 'btn-primary' : 'btn-secondary'}" 
+                                onclick="trackBatch('${batch.id}')"
+                                ${!batch.trackingNumber ? 'disabled' : ''}
+                                data-bs-toggle="tooltip" 
+                                data-bs-placement="top" 
+                                title="${batch.trackingNumber ? 'Track shipment' : 'No tracking number available'}">
+                            Track
+                        </button>
+                        ${batch.status === 'Pending' ? `
+                        <button class="btn btn-sm btn-warning" onclick="editTracking('${batch.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="cancelBatch('${batch.id}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                        ` : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            // Initialize tooltips for the filtered results
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(tooltip => new bootstrap.Tooltip(tooltip));
+
+            // Show success message
+            const toast = new bootstrap.Toast(document.getElementById('successToast'));
+            document.querySelector('#successToast .toast-body').innerHTML = 
+                `<i class="fas fa-check-circle me-2"></i>Filtered ${filteredBatches.length} batches`;
+            toast.show();
+        });
+
+        document.getElementById('clearDateFilter').addEventListener('click', function() {
+            // Clear the date inputs
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            
+            // Reset the date picker constraints
+            const startDatePicker = document.querySelector("#startDate")._flatpickr;
+            const endDatePicker = document.querySelector("#endDate")._flatpickr;
+            startDatePicker.set('maxDate', null);
+            endDatePicker.set('minDate', null);
+            
+            // Restore the original table data
+            updateBatchTable();
+            
+            // Show success message
+            const toast = new bootstrap.Toast(document.getElementById('successToast'));
+            document.querySelector('#successToast .toast-body').innerHTML = 
+                '<i class="fas fa-check-circle me-2"></i>Filters cleared';
+            toast.show();
+        });
+
+        // Add this new sorting functionality
+        let currentSortColumn = -1;
+        let isAscending = true;
+
+        function sortTable(columnIndex) {
+            const headers = document.querySelectorAll('.table thead th');
+
+            // Update sort indicators
+            headers.forEach((header, index) => {
+                if (index === columnIndex) {
+                    if (currentSortColumn === columnIndex) {
+                        isAscending = !isAscending;
+                        header.classList.toggle('sorting-asc', isAscending);
+                        header.classList.toggle('sorting-desc', !isAscending);
+                    } else {
+                        header.classList.remove('sorting');
+                        header.classList.add('sorting-asc');
+                        header.classList.remove('sorting-desc');
+                        isAscending = true;
+                    }
+                } else {
+                    header.classList.remove('sorting-asc', 'sorting-desc');
+                    header.classList.add('sorting');
+                }
+            });
+
+            currentSortColumn = columnIndex;
+
+            // Sort the batches array
+            batches.sort((a, b) => {
+                let valueA, valueB;
+
+                switch(columnIndex) {
+                    case 0: // Batch ID
+                        valueA = a.id;
+                        valueB = b.id;
+                        break;
+                    case 1: // Tracking Number
+                        valueA = a.trackingNumber || '';
+                        valueB = b.trackingNumber || '';
+                        break;
+                    case 2: // Origin
+                        valueA = a.origin;
+                        valueB = b.origin;
+                        break;
+                    case 3: // Destination
+                        valueA = a.destination;
+                        valueB = b.destination;
+                        break;
+                    case 4: // Samples
+                        valueA = a.samples.length;
+                        valueB = b.samples.length;
+                        return isAscending ? valueA - valueB : valueB - valueA;
+                    case 5: // Created Date
+                        valueA = new Date(a.createdDate).getTime();
+                        valueB = new Date(b.createdDate).getTime();
+                        return isAscending ? valueA - valueB : valueB - valueA;
+                    case 6: // Status
+                        valueA = a.status;
+                        valueB = b.status;
+                        break;
+                    default:
+                        return 0;
+                }
+
+                // For string comparisons
+                if (valueA < valueB) return isAscending ? -1 : 1;
+                if (valueA > valueB) return isAscending ? 1 : -1;
+                return 0;
+            });
+
+            // Update the table with sorted data
+            updateBatchTable();
+        }
     </script>
     <!-- Service Worker Registration -->
     <script>

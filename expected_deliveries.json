@@ -85,7 +85,7 @@
                 "type": "Biopsy (Formalin-Fixed)"
             }
         ],
-        "status": "In Transit",
+        "status": "Delivered",
         "expectedDeliveryDate": "2025-02-05T17:21:00.627Z",
         "shippedAt": "2025-02-03T17:21:00-05:00",
         "createdAt": "2/3/2025, 11:15:17 AM"
@@ -111,5 +111,28 @@
         "expectedDeliveryDate": "2025-02-06T20:16:47.839Z",
         "shippedAt": "2025-02-05T20:16:47.839Z",
         "createdAt": "2/3/2025, 11:19:13 AM"
+    },
+    {
+        "batchId": "B958453415",
+        "trackingNumber": "772724815293",
+        "origin": "CL001",
+        "destination": "LB002",
+        "expectedSamples": 1,
+        "samples": [
+            {
+                "addedTime": "2/3/2025, 4:43:14 PM",
+                "collectionDate": "2025-02-01T16:43",
+                "containerCount": "1",
+                "id": "S132",
+                "mrn": "M123",
+                "patientRef": "P123",
+                "photo": null,
+                "type": "Glass Slides"
+            }
+        ],
+        "status": "Delivered",
+        "expectedDeliveryDate": "2025-03-18T17:01:17.355Z",
+        "shippedAt": "2025-03-17T17:01:17.355Z",
+        "createdAt": "2/3/2025, 4:43:15 PM"
     }
 ]

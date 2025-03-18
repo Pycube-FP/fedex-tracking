@@ -56,7 +56,7 @@ def login():
         
         if username in USERS and USERS[username] == password:
             session['username'] = username
-            return redirect(url_for('index'))
+            return redirect(url_for('batching'))
         else:
             return render_template('login.html', error='Invalid username or password')
     
